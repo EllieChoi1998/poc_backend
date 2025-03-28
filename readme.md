@@ -66,6 +66,24 @@ netsh advfirewall firewall add rule name="WSL FastAPI" dir=in action=allow proto
 
 > ⚠️ If using different database settings, modify `database.py` accordingly.
 
+#### Executing Database Tables
+
+To set up the database tables, run the following command:
+
+```bash
+# For MySQL
+mysql -u root -p mydb < tables.sql
+
+# If using a different database, adjust the command accordingly
+```
+
+1. Ensure you're in the project `src` directory
+2. Replace `root` with your database username if different
+3. Replace `mydb` with your database name if different
+
+> ⚠️ Make sure you have created the database before executing `tables.sql`
+
+
 ---
 
 ## 한국어 가이드
@@ -129,3 +147,18 @@ netsh advfirewall firewall add rule name="WSL FastAPI" dir=in action=allow proto
   - 비밀번호: `admin`
 
 > ⚠️ 다른 데이터베이스 설정을 사용하는 경우, `database.py`를 수정하세요.
+
+#### 데이터베이스 테이블 실행
+데이터베이스 테이블을 설정하려면 다음 명령어를 실행하세요:
+```bash
+# MySQL의 경우
+mysql -u root -p mydb < tables.sql
+
+# 다른 데이터베이스를 사용하는 경우, 명령어를 적절히 조정하세요
+```
+
+1. 프로젝트 `src` 디렉토리에 있는지 확인하세요
+2. 데이터베이스 사용자 이름이 다르다면 `root`를 변경하세요
+3. 데이터베이스 이름이 다르다면 `mydb`를 변경하세요
+
+> ⚠️ `tables.sql`을 실행하기 전에 데이터베이스를 먼저 생성했는지 확인하세요
