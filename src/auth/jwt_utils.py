@@ -1,0 +1,81 @@
+from datetime import datetime, timedelta
+from jose import jwt
+from typing import Optional
+import secrets
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Generate a secure secret key if not exists
+def generate_secret_key():
+    """Generate a secure secret key for JWT"""
+    return secrets.token_hex(32)
+
+# Set up secret key
+SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+if not SECRET_KEY:
+    SECRET_KEY = generate_secret_key()
+    # In a real application, save this to .env file
+    print(f"Generated New Secret Key: {SECRET_KEY}")
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    Create a JWT access token
+    
+    :param data: Dictionary containing token payload
+    :param expires_delta: Optional expiration time
+    :return: Encoded JWT token
+    """
+    to_encode = data.copy()
+    
+    # Set expiration time
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode.update({"exp": expire})
+    
+    # Generate the JWT token
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return encoded_jwt
+
+def verify_token(token: str):
+    """
+    Verify and decode JWT token
+    
+    :param token: JWT token string
+    :return: Decoded token payload
+    """
+    try:
+        # Decode the token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.JWTError:
+        return None
+    
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    JWT 리프레시 토큰 생성
+    :param data: 토큰에 포함할 데이터 (user_id 등)
+    :param expires_delta: 만료 시간 (기본 7일)
+    :return: JWT 리프레시 토큰
+    """
+    to_encode = data.copy()
+    
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(days=7)  # 기본 7일 설정
+    
+    to_encode.update({"exp": expire})
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return encoded_jwt

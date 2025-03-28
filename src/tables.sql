@@ -11,6 +11,7 @@ CREATE TABLE user (
     password VARCHAR(100) NOT NULL,
     contact VARCHAR(100) NOT NULL,
     team_id INT,
+    refresh_token TEXT NULL,
     FOREIGN KEY (team_id) REFERENCES team(id) ON DELETE SET NULL
 );
 
