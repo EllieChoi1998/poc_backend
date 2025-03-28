@@ -132,7 +132,7 @@ async def logout(logout_data: LogoutRequest):
         conn.close()
 
 
-# Protected route example
+
 @router.get("/protected-route")
 async def protected_route(token: str):
     """

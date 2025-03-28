@@ -5,3 +5,5 @@ python-multipart
 python-jose
 passlib
 sqlalchemy
+python-jose[cryptography]
+python-dotenv
