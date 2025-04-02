@@ -7,3 +7,5 @@ passlib
 sqlalchemy
 python-jose[cryptography]
 python-dotenv
+bcrypt
+httpx
