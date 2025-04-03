@@ -22,7 +22,8 @@ services:
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
     volumes:
-      - ./src/tables.sql:/docker-entrypoint-initdb.d/tables.sql  # 컨테이너 시작 시 테이블 생성
+      - ./src/tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf  # 설정 파일 추가
     ports:
       - "3306:3306"
 
