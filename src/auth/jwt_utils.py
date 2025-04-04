@@ -4,6 +4,7 @@ from typing import Optional
 import secrets
 import os
 from dotenv import load_dotenv
+from fastapi import Header, HTTPException
 
 # Load environment variables
 load_dotenv()
@@ -14,11 +15,7 @@ def generate_secret_key():
     return secrets.token_hex(32)
 
 # Set up secret key
-SECRET_KEY = os.getenv('JWT_SECRET_KEY')
-if not SECRET_KEY:
-    SECRET_KEY = generate_secret_key()
-    # In a real application, save this to .env file
-    print(f"Generated New Secret Key: {SECRET_KEY}")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", generate_secret_key())
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -79,3 +76,22 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     
     return encoded_jwt
+
+def get_current_user(authorization: str = Header(...)):
+    """
+    Authorization 헤더로부터 JWT를 받아 유저 정보 반환
+    """
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid Authorization header format")
+
+    token = authorization[7:]  # "Bearer " 제거
+
+    payload = verify_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    user_id = payload.get("user_id")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="user_id not found in token")
+
+    return {"id": user_id}

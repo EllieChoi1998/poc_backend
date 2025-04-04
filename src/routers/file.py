@@ -1,10 +1,12 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from fastapi.responses import JSONResponse
 import httpx
 import os
 import shutil
 from typing import Optional
 from pydantic import BaseModel
+from src.database import get_db_connection
+from src.auth.jwt_utils import get_current_user  # 이제 이 함수는 위에서 정의했음
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
@@ -19,15 +21,47 @@ class ProcessResult(BaseModel):
     result_file: Optional[str] = None
 
 @router.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
-    """클라이언트로부터 파일 업로드 받기"""
+async def upload_file(
+    file: UploadFile = File(...),
+    document_name: str = Form(...),
+    doc_type: str = Form(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """파일 업로드 및 문서 정보 DB 저장"""
+
     file_location = f"{UPLOAD_DIR}/{file.filename}"
-    
+
+    # 파일 저장
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return JSONResponse(content={"filename": file.filename, "url": f"/files/{file.filename}"})
+    # DB 연결
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    insert_query = """
+        INSERT INTO document (document_name, file_name, embedding_id, doc_type, user_id, current_state)
+        VALUES (%s, %s, NULL, %s, %s, 0)
+    """
+    values = (document_name, file.filename, doc_type, current_user['id'])
+
+    try:
+        cursor.execute(insert_query, values)
+        conn.commit()
+        document_id = cursor.lastrowid
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"DB 오류: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return JSONResponse(content={
+        "message": "파일 업로드 및 도큐먼트 저장 완료",
+        "document_id": document_id,
+        "filename": file.filename,
+        "url": f"/files/{file.filename}"
+    })
 @router.post("/process-document/")
 async def process_document(
     filename: str = Form(...),
