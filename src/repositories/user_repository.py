@@ -92,3 +92,70 @@ class UserRepository:
         finally:
             cursor.close()
             conn.close()
+
+    @staticmethod
+    def update(user_id: int, user_data: Dict[str, Any]) -> bool:
+        """
+        사용자 정보를 업데이트합니다.
+        
+        Args:
+            user_id: 업데이트할 사용자의 ID
+            user_data: 업데이트할 사용자 데이터
+            
+        Returns:
+            bool: 업데이트 성공 여부
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 업데이트할 필드와 값을 동적으로 구성
+            update_fields = []
+            values = []
+            
+            for key, value in user_data.items():
+                if key != 'id':  # ID는 업데이트하지 않음
+                    update_fields.append(f"{key} = %s")
+                    values.append(value)
+            
+            # ID는 WHERE 절에서 사용
+            values.append(user_id)
+            
+            # SQL 쿼리 구성
+            sql = f"UPDATE user SET {', '.join(update_fields)} WHERE id = %s"
+            
+            # 쿼리 실행
+            cursor.execute(sql, values)
+            conn.commit()
+            
+            # 영향받은 행이 있으면 성공
+            return cursor.rowcount > 0
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def delete(user_id: int) -> bool:
+        """
+        사용자를 삭제합니다(비활성화).
+        실제로 삭제하지 않고 activate 필드를 'F'로 설정합니다.
+        
+        Args:
+            user_id: 삭제할 사용자의 ID
+            
+        Returns:
+            bool: 삭제 성공 여부
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            sql = "UPDATE user SET activate = 'F' WHERE id = %s"
+            cursor.execute(sql, (user_id,))
+            conn.commit()
+            
+            # 영향받은 행이 있으면 성공
+            return cursor.rowcount > 0
+        finally:
+            cursor.close()
+            conn.close()

@@ -85,7 +85,7 @@ class UserService:
         
         return {
             "access_token": new_access_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
         }
     
     @staticmethod
@@ -147,3 +147,105 @@ class UserService:
         
         # 저장소에서 모든 사용자 정보 가져오기
         return UserRepository.find_all()
+    
+    @staticmethod
+    def update_user(current_user_id: int, user_id: int, user_data: User) -> Dict[str, Any]:
+        """
+        사용자 정보를 업데이트합니다.
+        SYSTEM ADMINISTRATOR 역할을 가진 사용자만 다른 사용자를 업데이트할 수 있습니다.
+        일반 사용자는 자신의 정보만 업데이트할 수 있습니다.
+        
+        Args:
+            current_user_id: 현재 로그인한 사용자의 ID
+            user_id: 업데이트할 사용자의 ID
+            user_data: 업데이트할 사용자 데이터
+            
+        Returns:
+            Dict[str, Any]: 업데이트된 사용자 정보
+            
+        Raises:
+            PermissionError: 권한이 없는 사용자가 접근할 경우
+            ValueError: 사용자를 찾을 수 없는 경우, 업데이트에 실패한 경우
+        """
+        # 현재 사용자 정보 조회
+        current_user = UserRepository.find_by_id(current_user_id)
+        if not current_user:
+            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
+        
+        # 타겟 사용자 정보 조회
+        target_user = UserRepository.find_by_id(user_id)
+        if not target_user:
+            raise ValueError(f"업데이트할 사용자 ID {user_id}를 찾을 수 없습니다.")
+        
+        # 권한 검사
+        is_admin = current_user.get('system_role') == 'SYSTEM'
+        is_self = current_user_id == user_id
+        
+        if not (is_admin or is_self):
+            raise PermissionError("자신의 정보 또는 시스템 관리자만 사용자 정보를 수정할 수 있습니다.")
+        
+        # 일반 사용자는 특정 필드만 수정 가능
+        user_dict = user_data.dict(exclude_unset=True)
+        if not is_admin:
+            # 관리자가 아닌 경우 수정 불가능한 필드 제외
+            restricted_fields = ['system_role', 'activate', 'hiearchy', 'team_id']
+            for field in restricted_fields:
+                user_dict.pop(field, None)
+        
+        # 비밀번호 업데이트가 포함된 경우 해싱 처리
+        if 'password' in user_dict and user_dict['password']:
+            user_dict['password'] = UserService.hash_password(user_dict['password'])
+        
+        # 사용자 정보 업데이트
+        success = UserRepository.update(user_id, user_dict)
+        if not success:
+            raise ValueError(f"사용자 ID {user_id} 업데이트에 실패했습니다.")
+        
+        # 업데이트된 사용자 정보 반환
+        updated_user = UserRepository.find_by_id(user_id)
+        if not updated_user:
+            raise ValueError(f"업데이트된 사용자 정보를 조회할 수 없습니다.")
+        
+        return updated_user
+    
+    @staticmethod
+    def delete_user(current_user_id: int, user_id: int) -> bool:
+        """
+        사용자를 삭제합니다(비활성화).
+        SYSTEM 역할을 가진 사용자만 다른 사용자를 삭제할 수 있습니다.
+        
+        Args:
+            current_user_id: 현재 로그인한 사용자의 ID
+            user_id: 삭제할 사용자의 ID
+            
+        Returns:
+            bool: 삭제 성공 여부
+            
+        Raises:
+            PermissionError: 권한이 없는 사용자가 접근할 경우
+            ValueError: 사용자를 찾을 수 없는 경우, 삭제에 실패한 경우
+        """
+        # 현재 사용자 정보 조회
+        current_user = UserRepository.find_by_id(current_user_id)
+        if not current_user:
+            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
+        
+        # 타겟 사용자 정보 조회
+        target_user = UserRepository.find_by_id(user_id)
+        if not target_user:
+            raise ValueError(f"삭제할 사용자 ID {user_id}를 찾을 수 없습니다.")
+        
+        # 권한 검사: 시스템 관리자만 사용자 삭제 가능
+        if current_user.get('system_role') != 'SYSTEM':
+            raise PermissionError("시스템 관리자만 사용자를 삭제할 수 있습니다.")
+        
+        # 자기 자신은 삭제할 수 없음
+        if current_user_id == user_id:
+            raise ValueError("자기 자신은 삭제할 수 없습니다.")
+        
+        # 사용자 삭제 (비활성화)
+        success = UserRepository.delete(user_id)
+        if not success:
+            raise ValueError(f"사용자 ID {user_id} 삭제에 실패했습니다.")
+        
+        return True
