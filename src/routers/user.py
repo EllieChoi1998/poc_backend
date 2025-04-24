@@ -6,17 +6,24 @@ from auth.dependencies import get_system_user
 from typing import List, Dict, Any
 
 router = APIRouter()
-
-@router.post("/register", dependencies=[Depends(get_system_user)])
-async def register(user: User):
+    
+@router.post("/register", response_model=Dict[str, str])
+async def register(
+    user: User,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """
     새 사용자 등록 (시스템 관리자만 가능)
     """
-    print("Register endpoint hit")  # 디버깅을 위한 출력문
     try:
-        return UserService.register_user(user)
+        current_user_id = current_user["id"]
+        return UserService.register_user(current_user_id, user)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"사용자 등록 중 오류 발생: {str(e)}")
 
 @router.post("/login")
 async def login(login_data: LoginModel):

@@ -8,28 +8,49 @@ import logging
 
 class UserService:
     @staticmethod
-    def register_user(user: User) -> dict:
-        # login_id 중복 확인
-        existing_user = UserRepository.find_by_login_id(user.login_id)
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Login ID already registered")
-            
-        # ibk_id 중복 확인
-        existing_user = UserRepository.find_by_ibk_id(user.ibk_id)
-        if existing_user:
-            raise HTTPException(status_code=400, detail="IBK ID already registered")
+    def register_user(current_user_id: int, user: User) -> dict:
+        """
+        새 사용자를 등록합니다.
+        시스템 관리자(SYSTEM) 권한을 가진 사용자만 등록할 수 있습니다.
+
+        Args:
+            current_user_id: 현재 로그인한 사용자 ID
+            user: 생성할 사용자 정보
+
+        Returns:
+            dict: 성공 메시지
+
+        Raises:
+            PermissionError: 권한이 없는 경우
+            ValueError: 사용자 중복 또는 등록 실패
+        """
+        # 현재 사용자 정보 조회
+        current_user = UserRepository.find_by_id(current_user_id)
+        if not current_user:
+            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
         
+        if current_user.get('system_role') != 'SYSTEM':
+            raise PermissionError("시스템 관리자만 새로운 사용자를 등록할 수 있습니다.")
+        
+        # login_id 중복 확인
+        if UserRepository.find_by_login_id(user.login_id):
+            raise ValueError("Login ID already registered")
+
+        # ibk_id 중복 확인
+        if UserRepository.find_by_ibk_id(user.ibk_id):
+            raise ValueError("IBK ID already registered")
+
         # 비밀번호 해싱
         hashed_password = UserService.hash_password(user.password)
-        
-        # 사용자 데이터 준비
+
+        # 사용자 데이터 준비 및 생성
         user_data = user.dict()
         user_data['password'] = hashed_password
-        
-        # 사용자 생성
+
         UserRepository.create_user(user_data)
-        
+
         return {"message": "User registered successfully"}
+
     
     @staticmethod
     def login_user(login_data: LoginModel) -> dict:
