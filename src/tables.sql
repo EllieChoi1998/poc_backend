@@ -6,13 +6,21 @@ CREATE TABLE team (
 
 CREATE TABLE user (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    login_id VARCHAR(100) UNIQUE NOT NULL,
+    ibk_id VARCHAR(100) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
-    password VARCHAR(100) NOT NULL,
-    contact VARCHAR(100) NOT NULL,
+    password TEXT NOT NULL,
+    hiearchy VARCHAR(100) NOT NULL,
+    system_role VARCHAR(10) NOT NULL,
+    activate VARCHAR(1) DEFAULT 'T',
     team_id INT,
     refresh_token TEXT NULL,
     FOREIGN KEY (team_id) REFERENCES team(id) ON DELETE SET NULL
+);
+
+CREATE TABLE checklist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question TEXT NOT NULL
 );
 
 CREATE TABLE document (

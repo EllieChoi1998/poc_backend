@@ -2,15 +2,18 @@ from typing import Optional
 from pydantic import BaseModel
 
 class User(BaseModel):
-    email: str
+    login_id: str
+    ibk_id: str
     name: str
     password: str
-    team_id: int
-    contact: str
+    hiearchy: str
+    system_role: str
+    team_id: Optional[int] = None
+    activate: str = 'T'
     refresh_token: Optional[str] = None
 
 class LoginModel(BaseModel):
-    email: str
+    login_id: str
     password: str
 
 class LogoutRequest(BaseModel):

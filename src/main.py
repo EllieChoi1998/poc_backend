@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, file  # 라우터 가져오기
+from routers import user, file
+from services.system_service import SystemService
 
-app = FastAPI()
+app = FastAPI(title="IBK API", description="IBK Backend API Server")
+
+# 애플리케이션 시작 시 시스템 계정 초기화
+@app.on_event("startup")
+async def startup_event():
+    print("애플리케이션 시작: 시스템 계정 초기화 중...")
+    SystemService.initialize_system_account()
+    print("시스템 초기화 완료")
 
 # CORS 설정
 app.add_middleware(
@@ -19,4 +27,8 @@ app.include_router(file.router, prefix="/files", tags=["Files"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to FastAPI"}
+    return {"message": "IBK API Server is running"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8888, reload=True)

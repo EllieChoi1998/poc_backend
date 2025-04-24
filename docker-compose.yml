@@ -3,7 +3,7 @@ services:
     build: .
     container_name: poc_backend
     ports:
-      - "8000:8000" # FastAPI uvicorn
+      - "8888:8888" # FastAPI uvicorn
     depends_on:
       - mysql_db  # "db" -> "mysql_db"로 수정
     environment:

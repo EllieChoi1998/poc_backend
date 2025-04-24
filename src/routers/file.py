@@ -5,8 +5,8 @@ import os
 import shutil
 from typing import Optional
 from pydantic import BaseModel
-from src.database import get_db_connection
-from src.auth.jwt_utils import get_current_user  # 이제 이 함수는 위에서 정의했음
+from database import get_db_connection
+from auth.jwt_utils import get_current_user  # 이제 이 함수는 위에서 정의했음
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
