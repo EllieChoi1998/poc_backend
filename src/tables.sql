@@ -24,28 +24,33 @@ CREATE TABLE checklist (
     UNIQUE KEY unique_question (question(255))
 );
 
-
-CREATE TABLE document (
+CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    document_name VARCHAR(100) NOT NULL,
-    file_name VARCHAR(300) NOT NULL,
-    embedding_id VARCHAR(100),
-    doc_type VARCHAR(50) NOT NULL,
-    user_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    current_state INT DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
+    contract_name TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    embedding_id TEXT,
+    uploader VARCHAR(50) NOT NULL,
+    keypoint_processer VARCHAR(50),
+    checklist_processer VARCHAR(50),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    keypoint_processed TIMESTAMP,
+    checklist_processed TIMESTAMP,
+    current_state INT DEFAULT 0
 );
 
-CREATE TABLE serviceResult (
+CREATE TABLE checklist_result(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    document_id INT,
-    service_name VARCHAR(100) NOT NULL,
-    JSONFile_path VARCHAR(100),
-    result_text TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    table_html_path VARCHAR(200),
-    FOREIGN KEY (document_id) REFERENCES document(id) ON DELETE CASCADE
+    contract_id INT,
+    json_file_path TEXT,
+    printable_file_path TEXT,
+    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL
+);
+
+CREATE TABLE keypoint_result(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contract_id INT,
+    json_file_path TEXT,
+    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL
 );
 
 
