@@ -264,7 +264,7 @@ class UserService:
     @staticmethod
     def delete_user(current_user_id: int, user_id: int) -> bool:
         """
-        사용자를 삭제합니다(비활성화).
+        사용자를 삭제합니다.
         SYSTEM 역할을 가진 사용자만 다른 사용자를 삭제할 수 있습니다.
         
         Args:

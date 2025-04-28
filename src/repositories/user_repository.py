@@ -137,8 +137,7 @@ class UserRepository:
     @staticmethod
     def delete(user_id: int) -> bool:
         """
-        사용자를 삭제합니다(비활성화).
-        실제로 삭제하지 않고 activate 필드를 'F'로 설정합니다.
+        사용자를 삭제합니다
         
         Args:
             user_id: 삭제할 사용자의 ID
@@ -149,7 +148,7 @@ class UserRepository:
         cursor, conn = UserRepository.open_db()
         
         try:
-            sql = "UPDATE user SET activate = 'F' WHERE id = %s"
+            sql = "DELETE FROM user WHERE id=%s"
             cursor.execute(sql, (user_id,))
             conn.commit()
             

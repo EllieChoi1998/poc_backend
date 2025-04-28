@@ -22,4 +22,3 @@ class LogoutRequest(BaseModel):
 class Checklist(BaseModel):
     checklist_id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
     question: str
-
