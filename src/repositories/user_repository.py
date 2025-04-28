@@ -3,33 +3,39 @@ from typing import Optional, Dict, Any, List
 
 class UserRepository:
     @staticmethod
-    def find_by_login_id(login_id: str) -> Optional[Dict[str, Any]]:
+    def open_db():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+        return cursor, conn
+    
+    @staticmethod
+    def close_db(conn, cursor):
+        cursor.close()
+        conn.close()
+
+    @staticmethod
+    def find_by_login_id(login_id: str) -> Optional[Dict[str, Any]]:
+        cursor, conn = UserRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE login_id = %s', (login_id,))
             return cursor.fetchone()
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
     
     @staticmethod
     def find_by_ibk_id(ibk_id: str) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor, conn = UserRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE ibk_id = %s', (ibk_id,))
             return cursor.fetchone()
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
     
     @staticmethod
     def create_user(user_data: Dict[str, Any]) -> bool:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor, conn = UserRepository.open_db()
         
         try:
             cursor.execute(
@@ -47,13 +53,11 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
     
     @staticmethod
     def update_refresh_token(user_id: int, refresh_token: Optional[str]) -> bool:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor, conn = UserRepository.open_db()
         
         try:
             cursor.execute(
@@ -66,32 +70,27 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
     
     @staticmethod
     def find_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor, conn = UserRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE id = %s', (user_id,))
             return cursor.fetchone()
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
             
     @staticmethod
     def find_all() -> List[Dict[str, Any]]:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor, conn = UserRepository.open_db()
         
         try:
-            cursor.execute('SELECT * FROM user')
+            cursor.execute('SELECT * FROM user WHERE activate = "T"')  # 활성화된 사용자만 조회
             return cursor.fetchall()
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
 
     @staticmethod
     def update(user_id: int, user_data: Dict[str, Any]) -> bool:
@@ -105,8 +104,7 @@ class UserRepository:
         Returns:
             bool: 업데이트 성공 여부
         """
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor, conn = UserRepository.open_db()
         
         try:
             # 업데이트할 필드와 값을 동적으로 구성
@@ -130,9 +128,11 @@ class UserRepository:
             
             # 영향받은 행이 있으면 성공
             return cursor.rowcount > 0
+        except Exception as e:
+            conn.rollback()
+            raise e
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)
 
     @staticmethod
     def delete(user_id: int) -> bool:
@@ -146,8 +146,7 @@ class UserRepository:
         Returns:
             bool: 삭제 성공 여부
         """
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor, conn = UserRepository.open_db()
         
         try:
             sql = "UPDATE user SET activate = 'F' WHERE id = %s"
@@ -156,6 +155,8 @@ class UserRepository:
             
             # 영향받은 행이 있으면 성공
             return cursor.rowcount > 0
+        except Exception as e:
+            conn.rollback()
+            raise e
         finally:
-            cursor.close()
-            conn.close()
+            UserRepository.close_db(conn, cursor)

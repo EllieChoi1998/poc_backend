@@ -1,1 +1,1 @@
-from . import user, file  
+from . import user, file, checklist

@@ -20,8 +20,10 @@ CREATE TABLE user (
 
 CREATE TABLE checklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    question TEXT NOT NULL
+    question TEXT,
+    UNIQUE KEY unique_question (question(255))
 );
+
 
 CREATE TABLE document (
     id INT AUTO_INCREMENT PRIMARY KEY,
