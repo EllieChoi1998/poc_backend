@@ -35,7 +35,7 @@ async def login(login_data: LoginModel):
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"로그인 처리 중 오류가 발생했습니다.")
+        raise HTTPException(status_code=500, detail=f"로그인 처리 중 오류가 발생했습니다.\n{e}")
 
 @router.post("/refresh")
 async def refresh(refresh_data: dict):
