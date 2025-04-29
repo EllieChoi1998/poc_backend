@@ -18,12 +18,6 @@ CREATE TABLE user (
     FOREIGN KEY (team_id) REFERENCES team(id) ON DELETE SET NULL
 );
 
-CREATE TABLE checklist (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    question TEXT,
-    UNIQUE KEY unique_question (question(255))
-);
-
 CREATE TABLE termsNconditions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code TEXT,
@@ -33,26 +27,46 @@ CREATE TABLE termsNconditions (
     UNIQUE KEY unique_code (code(255))
 );
 
+CREATE TABLE checklist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question TEXT,
+    UNIQUE KEY unique_question (question(255))
+);
+
 CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_name TEXT NOT NULL,
     file_name TEXT NOT NULL,
-    embedding_id TEXT,
-    uploader VARCHAR(50) NOT NULL,
-    keypoint_processer VARCHAR(50),
-    checklist_processer VARCHAR(50),
+    embedding_id TEXT DEFAULT NULL,
+    uploader_id INT NOT NULL,
+    keypoint_processer_id INT DEFAULT NULL,
+    checklist_processer_id INT DEFAULT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    keypoint_processed TIMESTAMP,
-    checklist_processed TIMESTAMP,
-    current_state INT DEFAULT 0
+    keypoint_processed TIMESTAMP DEFAULT NULL,
+    checklist_processed TIMESTAMP DEFAULT NULL,
+    checklist_printable_file_path TEXT DEFAULT NULL,
+    current_state INT DEFAULT 0,
+
+    FOREIGN KEY (uploader_id) REFERENCES user(id) ON DELETE SET NULL,
+    FOREIGN KEY (keypoint_processer_id) REFERENCES user(id) ON DELETE SET NULL,
+    FOREIGN KEY (checklist_processer_id) REFERENCES user(id) ON DELETE SET NULL,E
 );
 
-CREATE TABLE checklist_result(
+CREATE TABLE checklist_results(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_id INT,
-    json_file_path TEXT,
-    printable_file_path TEXT,
-    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL
+    checklist_id INT,
+    memo TEXT DEFAULT NULL,
+    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE CASCADE,
+    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE,
+);
+
+CREATE TABLE checklist_results_values(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    checklist_results_id INT,
+    clause_num TEXT,
+    located_page INT,
+    FOREIGN KEY (checklist_results_id) REFERENCES checklist_results(id) ON DELETE CASCADE,
 );
 
 CREATE TABLE keypoint_result(

@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 class User(BaseModel):
     login_id: str
@@ -23,21 +24,33 @@ class Checklist(BaseModel):
     checklist_id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
     question: str
 
-class Contract(BaseModel):
-    document_id: Optional[int] = None # create 시에는 ID가 없을 수 있으므로 Optional 처리
-    document_name: str
-    file_name: str
-    embedding_id: Optional[str] = None # nullable
-    doc_type: Optional[str] = None # create 시에는 없을 수 있음
-    uploader: Optional[str] = None # create 시 삽입해야 하므로
-    keypoint_processer: Optional[str] = None # 핵심사항 추출한 사람 기록 용 (최초엔 없음)
-    checklist_processer: Optional[str] = None # 체크리스트 수행한 사람 기록 용 (최초엔 없음)
-    uploaded_at: Optional[str] = None # create 시 삽입해야 함
-    keypoint_proccessed: Optional[str] = None # 핵심사항 추출한 일자 기록 용 (최초엔 없음)
-    checklist_proccessed: Optional[str] = None # 체크리스트 수행한 일자 기록 용 (최초엔 없음)
-    current_state: Optional[int] = 0 # Default 0 으로 처리 가능
-
 class TermsNConditions(BaseModel):
     termsNconditions_id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
     code: str
     query: str
+
+class Contract(BaseModel):
+    id: Optional[int] = None
+    contract_name: str # = 파일 위치, 생성 규칙 : 
+    file_name: str
+    embedding_id: Optional[str] = None
+    uploader_id: int
+    keypoint_processer_id: Optional[int] = None
+    checklist_processer_id: Optional[int] = None
+    uploaded_at: Optional[datetime]
+    keypoint_processed: Optional[datetime] = None
+    checklist_processed: Optional[datetime] = None
+    checklist_printable_file_path: Optional[str] = None
+    current_state: int = 0
+
+class Checklist_Results(BaseModel):
+    id: Optional[int] = None
+    contract_id: int
+    checklist_id: int
+    memo: Optional[str] = None
+
+class Checklist_Results_Values(BaseModel):
+    id: Optional[int] = None
+    checklist_results_id: int
+    clause_num: str
+    located_pate: int
