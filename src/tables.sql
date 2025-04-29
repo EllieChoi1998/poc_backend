@@ -20,11 +20,10 @@ CREATE TABLE user (
 
 CREATE TABLE termsNconditions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code TEXT,
-    query TEXT,
-
-    UNIQUE KEY unique_query (query(255)),
-    UNIQUE KEY unique_code (code(255))
+    code VARCHAR(255),
+    query VARCHAR(255),
+    UNIQUE KEY unique_query (query),
+    UNIQUE KEY unique_code (code)
 );
 
 CREATE TABLE checklist (
@@ -38,7 +37,7 @@ CREATE TABLE contract(
     contract_name TEXT NOT NULL,
     file_name TEXT NOT NULL,
     embedding_id TEXT DEFAULT NULL,
-    uploader_id INT NOT NULL,
+    uploader_id INT,
     keypoint_processer_id INT DEFAULT NULL,
     checklist_processer_id INT DEFAULT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -49,7 +48,7 @@ CREATE TABLE contract(
 
     FOREIGN KEY (uploader_id) REFERENCES user(id) ON DELETE SET NULL,
     FOREIGN KEY (keypoint_processer_id) REFERENCES user(id) ON DELETE SET NULL,
-    FOREIGN KEY (checklist_processer_id) REFERENCES user(id) ON DELETE SET NULL,E
+    FOREIGN KEY (checklist_processer_id) REFERENCES user(id) ON DELETE SET NULL
 );
 
 CREATE TABLE checklist_results(
@@ -58,7 +57,7 @@ CREATE TABLE checklist_results(
     checklist_id INT,
     memo TEXT DEFAULT NULL,
     FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE CASCADE,
-    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE,
+    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE
 );
 
 CREATE TABLE checklist_results_values(
@@ -66,7 +65,7 @@ CREATE TABLE checklist_results_values(
     checklist_results_id INT,
     clause_num TEXT,
     located_page INT,
-    FOREIGN KEY (checklist_results_id) REFERENCES checklist_results(id) ON DELETE CASCADE,
+    FOREIGN KEY (checklist_results_id) REFERENCES checklist_results(id) ON DELETE CASCADE
 );
 
 CREATE TABLE keypoint_result(
