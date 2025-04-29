@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, file, checklist
+from routers import user, file, checklist, termsNconditons
 from services.system_service import SystemService
 
 app = FastAPI(title="IBK API", description="IBK Backend API Server")
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(file.router, prefix="/files", tags=["Files"])
 app.include_router(checklist.router, prefix="/checklist", tags=["Checklist"])
+app.include_router(termsNconditons.router, prefix="/terms", tags=["Terms and Conditions"])
 
 @app.get("/")
 async def root():

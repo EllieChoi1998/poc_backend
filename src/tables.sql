@@ -24,6 +24,15 @@ CREATE TABLE checklist (
     UNIQUE KEY unique_question (question(255))
 );
 
+CREATE TABLE termsNconditions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code TEXT,
+    query TEXT,
+
+    UNIQUE KEY unique_query (query(255)),
+    UNIQUE KEY unique_code (code(255))
+);
+
 CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_name TEXT NOT NULL,

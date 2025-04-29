@@ -36,4 +36,8 @@ class Contract(BaseModel):
     keypoint_proccessed: Optional[str] = None # 핵심사항 추출한 일자 기록 용 (최초엔 없음)
     checklist_proccessed: Optional[str] = None # 체크리스트 수행한 일자 기록 용 (최초엔 없음)
     current_state: Optional[int] = 0 # Default 0 으로 처리 가능
-    
+
+class TermsNConditions(BaseModel):
+    termsNconditions_id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
+    code: str
+    query: str

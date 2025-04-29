@@ -106,7 +106,9 @@ class UserService:
             "token_type": "bearer",
             "user_id": user['id'],
             "user_name": user['name'],
-            "system_role": user['system_role']
+            "system_role": user['system_role'],
+            "ibk_id": user['ibk_id'],
+            "login_id": user['login_id'],
         }
     
     @staticmethod

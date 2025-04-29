@@ -5,6 +5,7 @@ import secrets
 import os
 from dotenv import load_dotenv
 from fastapi import Header, HTTPException
+from jose.exceptions import ExpiredSignatureError, JWTError
 
 # Load environment variables
 load_dotenv()
@@ -43,20 +44,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     
     return encoded_jwt
 
+
 def verify_token(token: str):
-    """
-    Verify and decode JWT token
-    
-    :param token: JWT token string
-    :return: Decoded token payload
-    """
     try:
-        # Decode the token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.JWTError:
-        return None
-    
+    except ExpiredSignatureError:
+        # 만료된 토큰은 명확하게 401 Unauthorized
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     JWT 리프레시 토큰 생성
@@ -67,9 +65,9 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(datetime.timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=7)  # 기본 7일 설정
+        expire = datetime.now(datetime.timezone.utc) + timedelta(days=7)  # 기본 7일 설정
     
     to_encode.update({"exp": expire})
     
