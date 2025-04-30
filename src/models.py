@@ -43,14 +43,14 @@ class Contract(BaseModel):
     checklist_printable_file_path: Optional[str] = None
     current_state: int = 0
 
-class Checklist_Results(BaseModel):
+class Checklist_Result(BaseModel):
     id: Optional[int] = None
     contract_id: int
     checklist_id: int
     memo: Optional[str] = None
 
-class Checklist_Results_Values(BaseModel):
+class Checklist_Result_Value(BaseModel):
     id: Optional[int] = None
-    checklist_results_id: int
+    checklist_result_id: Optional[int] = None
     clause_num: str
-    located_pate: int
+    located_page: int
