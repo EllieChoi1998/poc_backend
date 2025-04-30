@@ -92,3 +92,21 @@ class TermsNConditionsRepository:
             return cursor.fetchone()
         finally:
             TermsNConditionsRepository.close_db(cursor=cursor, conn=conn)
+
+    @staticmethod
+    def exists_by_query_excluding_id(query: str, exclude_id: int) -> Optional[Dict[str, Any]]:
+        cursor, conn = TermsNConditionsRepository.open_db()
+        try:
+            cursor.execute('SELECT * FROM termsNconditions WHERE query = %s AND id != %s', (query, exclude_id,))  # 수정: 튜플로 변경
+            return cursor.fetchone()
+        finally:
+            TermsNConditionsRepository.close_db(cursor=cursor, conn=conn)
+
+    @staticmethod
+    def exists_by_code_excluding_id(code: str, exclude_id: int) -> Optional[Dict[str, Any]]:
+        cursor, conn = TermsNConditionsRepository.open_db()
+        try:
+            cursor.execute('SELECT * FROM termsNconditions WHERE code = %s AND id != %s', (code, exclude_id,))  # 수정: 튜플로 변경
+            return cursor.fetchone()
+        finally:
+            TermsNConditionsRepository.close_db(cursor=cursor, conn=conn)

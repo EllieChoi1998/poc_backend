@@ -68,13 +68,13 @@ class TermsNConditionsService:
             ValueError: 현존하는 제한명이 아닌 경우 또는 수정 실패
         """
         TermsNConditionsService.validate_system_user(current_user_id=current_user_id)
-
+        
         # query 실존 여부 확인
         if not TermsNConditionsRepository.find_by_id(termsNconditions_id):
             raise ValueError(f"{termsNconditions_id}번 제한명을 찾을 수 없습니다.")
-        if TermsNConditionsRepository.find_by_query(query=query):
+        elif TermsNConditionsRepository.exists_by_query_excluding_id(query=query, exclude_id=termsNconditions_id):
             raise ValueError("이미 등록된 질문입니다.")
-        if TermsNConditionsRepository.find_by_code(code=code):
+        elif TermsNConditionsRepository.exists_by_code_excluding_id(code=code, exclude_id=termsNconditions_id):
             raise ValueError("이미 등록된 질문입니다.")
             
         if TermsNConditionsRepository.update_query(termsNconditions_id=termsNconditions_id, query=query, code=code):
