@@ -4,3 +4,4 @@ src/__pycache__/*
 src/routers/__pycache__/*
 src/auth/__pycache__/*
 .env
+contracts/*

@@ -160,3 +160,20 @@ class UserRepository:
             raise e
         finally:
             UserRepository.close_db(conn, cursor)
+
+    @staticmethod
+    def find_user_activation(user_id: int) -> bool:
+        """
+        특정 사용자의 활성화 여부를 확인합니다.
+        """
+
+        cursor, conn = UserRepository.open_db()
+        try:
+            sql = "SELECT * FROM user WHERE id=%s AND activate='T'"
+            cursor.execute(sql, (user_id,))
+            if cursor.fetchone(): 
+                return True
+        except Exception as e:
+            return False
+        finally:
+            UserRepository.close_db(conn=conn, cursor=cursor)

@@ -9,7 +9,7 @@ from database import get_db_connection
 from auth.jwt_utils import get_current_user  # 이제 이 함수는 위에서 정의했음
 
 router = APIRouter()
-UPLOAD_DIR = "uploads"
+UPLOAD_DIR = "./contracts/original/"
 AI_SERVER_URL = "http://192.168.0.196:8001"  # AI 서버 주소
 
 # 필요한 디렉토리 생성
@@ -20,7 +20,7 @@ class ProcessResult(BaseModel):
     message: str
     result_file: Optional[str] = None
 
-@router.post("/upload/")
+@router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
     document_name: str = Form(...),

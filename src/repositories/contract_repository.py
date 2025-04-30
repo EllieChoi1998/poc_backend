@@ -164,3 +164,13 @@ class ContractRepository:
     # def delete_contract(id: int) -> bool:
     #     cursor, conn = ContractRepository.open_db()
     #     try:
+
+    @staticmethod
+    def find_by_file_path(contract_name: str, file_name: str) -> Optional[Dict[str, Any]]:
+        cursor, conn = ContractRepository.open_db()
+        try:
+            cursor.execute('SELECT * FROM contract WHERE contract_name=%s AND file_name=%s',
+                           (contract_name, file_name))
+            return cursor.fetchone()
+        finally:
+            ContractRepository.close_db(conn=conn, cursor=cursor)
