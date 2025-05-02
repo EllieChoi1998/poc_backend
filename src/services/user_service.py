@@ -69,7 +69,7 @@ class UserService:
 
         UserRepository.create_user(user_data)
 
-        return {"message": "사용자가 성공적으로 등록되었습니다."}
+        return {"message": "사용자가 성공적으로 등록되었습니다~!!!!"}
     
     @staticmethod
     def login_user(login_data: LoginModel) -> dict:

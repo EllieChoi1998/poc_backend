@@ -83,6 +83,7 @@ INSERT INTO team(name, department) VALUES ('영업팀', '수탁사업부');
 INSERT INTO checklist(question) VALUES ('집합투자업자와 기본계약은 체결되어 있는가');
 INSERT INTO checklist(question) VALUES ('집합투자업자 및 신탁업자의 상호가 적정하게 기재되어 있는가');
 INSERT INTO checklist(question) VALUES ('집합투자업자의 업무와 신탁업자의 업무가 적정하게 기재되어 있는가');
+INSERT INTO checklist(question) VALUES ('집합투자기구의 종류와 추가신탁 허용 여부, 환매금지여부 등이 적정하게 매칭되어 있는가');
 INSERT INTO checklist(question) VALUES ('신탁계약기간의 효력발생시기와 신탁계약기간이 적정하게 기재되어 있는가');
 INSERT INTO checklist(question) VALUES ('신탁원본의 가액 및 수익증권의 총좌수에 관한 사항이 기재되어 있는가');
 INSERT INTO checklist(question) VALUES ('집합투자업자와 신탁업자의 투자대상자산의 취득/처분 등에 대하여 신탁 재산 한도 내에서 이행책임을 부담한다는 문구가 기재되어 있는가');
