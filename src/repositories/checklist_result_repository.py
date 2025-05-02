@@ -56,83 +56,89 @@ class ChecklistResultRepository:
         finally:
             ChecklistResultRepository.close_db(cursor=cursor, conn=conn)
 
-    @staticmethod
-    def find_all_checklist_results_by_contract_id(contract_id: int) -> List[Dict[str, Any]]:
-        cursor, conn = ChecklistResultRepository.open_db()
+@staticmethod
+def find_all_checklist_results_by_contract(contract_id: int) -> Optional[Dict[str, Any]]:
+    cursor, conn = ChecklistResultRepository.open_db()
 
-        try:
-            query = """
-                SELECT
-                    c.contract_name,
-                    c.file_name,
-                    c.uploader_id,
-                    c.checklist_processer_id,
-                    c.uploaded_at,
-                    c.checklist_processed,
-                    c.checklist_printable_file_path,
-                    c.current_state,
+    try:
+        query = """
+        SELECT 
+            c.id AS contract_id,
+            c.contract_name,
+            c.file_name,
+            c.uploader_id,
+            c.checklist_processer_id,
+            c.uploaded_at,
+            c.checklist_processed,
+            c.checklist_printable_file_path,
+            c.current_state,
 
-                    cr.id AS checklist_result_id,
-                    cr.contract_id,
-                    cr.checklist_id,
-                    cr.memo,
+            cr.id AS checklist_result_id,
+            cr.checklist_id,
+            cr.memo,
 
-                    crv.id AS checklist_result_value_id,
-                    crv.clause_num,
-                    crv.located_page,
+            cl.id AS checklist_id,
+            cl.question,
 
-                    cl.id AS checklist_id_full,
-                    cl.question
-                FROM contract c
-                LEFT JOIN checklist_result cr ON c.id = cr.contract_id
-                LEFT JOIN checklist_result_value crv ON cr.id = crv.checklist_result_id
-                LEFT JOIN checklist cl ON cr.checklist_id = cl.id
-                WHERE c.id = %s
-            """
+            crv.id AS checklist_result_value_id,
+            crv.clause_num,
+            crv.located_page
 
-            cursor.execute(query, (contract_id,))
-            rows = cursor.fetchall()
-            columns = [desc[0] for desc in cursor.description]
+        FROM contract c
+        LEFT JOIN checklist_result cr ON cr.contract_id = c.id
+        LEFT JOIN checklist cl ON cl.id = cr.checklist_id
+        LEFT JOIN checklist_result_value crv ON crv.checklist_result_id = cr.id
+        WHERE c.id = %s
+        ORDER BY cr.id, crv.id
+        """
 
-            # 결과 구조화
-            result_dict: Dict[int, Dict[str, Any]] = {}
-            for row in rows:
-                row_data = dict(zip(columns, row))
-                checklist_result_id = row_data['checklist_result_id']
+        cursor.execute(query, (contract_id,))
+        rows = cursor.fetchall()
 
-                if checklist_result_id not in result_dict:
-                    result_dict[checklist_result_id] = {
-                        "contract": {
-                            "contract_name": row_data["contract_name"],
-                            "file_name": row_data["file_name"],
-                            "uploader_id": row_data["uploader_id"],
-                            "checklist_processer_id": row_data["checklist_processer_id"],
-                            "uploaded_at": row_data["uploaded_at"],
-                            "checklist_processed": row_data["checklist_processed"],
-                            "checklist_printable_file_path": row_data["checklist_printable_file_path"],
-                            "current_state": row_data["current_state"]
-                        },
-                        "checklist_result": {
-                            "id": checklist_result_id,
-                            "contract_id": row_data["contract_id"],
-                            "checklist_id": row_data["checklist_id"],
-                            "memo": row_data["memo"],
-                            "checklist": {
-                                "id": row_data["checklist_id_full"],
-                                "question": row_data["question"]
-                            },
-                            "values": []
-                        }
-                    }
+        if not rows:
+            return {}
 
-                if row_data["checklist_result_value_id"] is not None:
-                    result_dict[checklist_result_id]["checklist_result"]["values"].append({
-                        "id": row_data["checklist_result_value_id"],
-                        "clause_num": row_data["clause_num"],
-                        "located_page": row_data["located_page"]
-                    })
+        # contract 정보는 하나만 가져오면 됨
+        contract_info = {
+            "contract_name": rows[0]["contract_name"],
+            "file_name": rows[0]["file_name"],
+            "uploader_id": rows[0]["uploader_id"],
+            "checklist_processer_id": rows[0]["checklist_processer_id"],
+            "uploaded_at": str(rows[0]["uploaded_at"]),
+            "checklist_processed": str(rows[0]["checklist_processed"]) if rows[0]["checklist_processed"] else None,
+            "checklist_printable_file_path": rows[0]["checklist_printable_file_path"],
+            "current_state": rows[0]["current_state"]
+        }
 
-            return list(result_dict.values())
+        checklist_results_dict = {}
 
-        finally:
-            ChecklistResultRepository.close_db(cursor=cursor, conn=conn)
+        for row in rows:
+            cr_id = row["checklist_result_id"]
+            if cr_id is None:
+                continue  # 연결된 checklist_result가 없을 경우
+
+            if cr_id not in checklist_results_dict:
+                checklist_results_dict[cr_id] = {
+                    "id": cr_id,
+                    "memo": row["memo"],
+                    "checklist": {
+                        "id": row["checklist_id"],
+                        "question": row["question"]
+                    },
+                    "values": []
+                }
+
+            if row["checklist_result_value_id"] is not None:
+                checklist_results_dict[cr_id]["values"].append({
+                    "id": row["checklist_result_value_id"],
+                    "clause_num": row["clause_num"],
+                    "located_page": row["located_page"]
+                })
+
+        return {
+            "contract": contract_info,
+            "checklist_results": list(checklist_results_dict.values())
+        }
+
+    finally:
+        ChecklistResultRepository.close_db(cursor=cursor, conn=conn)
