@@ -95,6 +95,7 @@ class ChecklistResultRepository:
                 return {}
 
             contract_info = {
+                "contract_id": rows[0]["contract_id"],
                 "contract_name": rows[0]["contract_name"],
                 "file_name": rows[0]["file_name"],
                 "uploader_id": rows[0]["uploader_id"],

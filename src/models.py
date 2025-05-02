@@ -54,3 +54,12 @@ class Checklist_Result_Value(BaseModel):
     checklist_result_id: Optional[int] = None
     clause_num: str
     located_page: int
+
+class KeypointResultCreate(BaseModel):
+    contract_id: int
+    termsNconditions_id: int
+
+class AIKeypointResultCreate(BaseModel):
+    contract_id: int
+    termsNconditions_id: int
+    match_rate: float

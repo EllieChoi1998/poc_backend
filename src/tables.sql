@@ -71,8 +71,10 @@ CREATE TABLE checklist_result_value(
 CREATE TABLE keypoint_result(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_id INT,
-    json_file_path TEXT,
-    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL
+    termsNconditions_id INT,
+    match_rate FLOAT,
+    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL,
+    FOREIGN KEY (termsNconditions_id) REFERENCES termsNconditions(id) ON DELETE CASCADE
 );
 
 
