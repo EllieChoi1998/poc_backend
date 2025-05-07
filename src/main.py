@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, checklist, termsNconditons, contract, keypoint_result
+from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result
 from services.system_service import SystemService
 # from src.routers import file
 
@@ -29,6 +29,8 @@ app.include_router(contract.router, prefix="/contracts", tags=["Contracts"])
 app.include_router(checklist.router, prefix="/checklist", tags=["Checklist"])
 app.include_router(termsNconditons.router, prefix="/terms", tags=["Terms and Conditions"])
 app.include_router(keypoint_result.router, prefix="/keypoint-results", tags=["Keypoint Results"])
+app.include_router(checklist_result.router, prefix="/checklist-results", tags=["Checklist Results"])
+
 @app.get("/")
 async def root():
     return {"message": "IBK API Server is running"}

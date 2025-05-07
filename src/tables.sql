@@ -57,7 +57,8 @@ CREATE TABLE checklist_result(
     checklist_id INT,
     memo TEXT DEFAULT NULL,
     FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE CASCADE,
-    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE
+    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_contract_checklist (contract_id, checklist_id)
 );
 
 CREATE TABLE checklist_result_value(

@@ -1,12 +1,21 @@
-from typing import Optional, Dict, Any, List
-from models import Checklist_Result_Value
 from repositories.checklist_result_repository import ChecklistResultRepository
 from repositories.user_repository import UserRepository
+from typing import List, Dict, Any, Optional
+from models import Checklist_Result_Value
 
 
 class ChecklistResultService:
     @staticmethod
-    def validate_checklist_user(user_id: int) -> None:
+    def validate_user(user_id: int) -> None:
+        """
+        사용자의 존재 및 활성화 여부를 검증합니다.
+        
+        Args:
+            user_id: 검증할 사용자 ID
+        Raises:
+            ValueError: 사용자를 찾을 수 없는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
+        """
         user = UserRepository.find_by_id(user_id=user_id)
         if not user:
             raise ValueError(f"ID {user_id} 사용자가 존재하지 않습니다.")
@@ -14,51 +23,154 @@ class ChecklistResultService:
             raise PermissionError(f"사용자 ID {user_id} 계정은 비활성화(삭제)된 계정입니다.")
 
     @staticmethod
-    def get_all_results(user_id: int, contract_id: int) -> Optional[Dict[str, Any]]:
-        ChecklistResultService.validate_checklist_user(user_id)
-        return ChecklistResultRepository.find_all_checklist_results_by_contract(contract_id)
-
-    @staticmethod
-    def edit_memo(user_id: int, checklist_result_id: int, memo: str) -> Dict[str, str]:
-        ChecklistResultService.validate_checklist_user(user_id)
-
-        success = ChecklistResultRepository.update_memo(checklist_result_id=checklist_result_id, memo=memo)
-        if success:
-            return {"message": "메모 수정 완료."}
-        raise ValueError("메모 수정 중 오류 발생")
-
-    @staticmethod
-    def delete_value(user_id: int, value_id: int) -> Dict[str, str]:
-        ChecklistResultService.validate_checklist_user(user_id)
-
-        value = ChecklistResultRepository.get_value_by_value_id(value_id=value_id)
-        if not value:
-            raise ValueError("해당 값이 존재하지 않습니다.")
-
-        success = ChecklistResultRepository.delete_checklist_result_value(value_id=value_id)
-        if success:
-            return {"message": f"{value['clause_num']}가 삭제되었습니다."}
-        raise ValueError("조항 삭제 중 오류 발생.")
-
-    @staticmethod
-    def add_checklist_result(contract_id: int, checklist_id: int, returned_value: Optional[Dict[str, Any]]) -> None:
+    def create_result(
+        user_id: int,
+        contract_id: int,
+        checklist_id: int,
+        checklist_result_values: Optional[List[Checklist_Result_Value]] = None
+    ) -> bool:
         """
-        AI 서버에서 응답 받아와 SQL 데이터베이스에 저장하는 용도의 서비스 함수.
+        체크리스트 결과를 생성합니다.
+        
+        Args:
+            user_id: 요청한 사용자 ID
+            contract_id: 계약서 ID
+            checklist_id: 체크리스트 ID
+            checklist_result_values: 체크리스트 결과 값 목록 (선택사항)
+            
+        Returns:
+            bool: 성공 여부
+            
+        Raises:
+            ValueError: 사용자가 존재하지 않는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
         """
-        if not returned_value:
-            return
-
-        values: List[Checklist_Result_Value] = []
-
-        for clause_num, located_page in returned_value.items():
-            value = Checklist_Result_Value(
-                clause_num=clause_num,
-                located_page=located_page
+        # 사용자 유효성 검증
+        ChecklistResultService.validate_user(user_id)
+        
+        try:
+            result = ChecklistResultRepository.create_result(
+                checklist_result_values=checklist_result_values,
+                contract_id=contract_id,
+                checklist_id=checklist_id
             )
-            values.append(value)
+            return result
+        except Exception as e:
+            raise e
 
-        ChecklistResultRepository.create_result(
-            contract_id=contract_id,
-            checklist_id=checklist_id,
-            checklist_result_values=values
-        )
+    @staticmethod
+    def update_memo(user_id: int, checklist_result_id: int, memo: str) -> bool:
+        """
+        체크리스트 결과의 메모를 업데이트합니다.
+        
+        Args:
+            user_id: 요청한 사용자 ID
+            checklist_result_id: 체크리스트 결과 ID
+            memo: 업데이트할 메모 내용
+            
+        Returns:
+            bool: 성공 여부
+            
+        Raises:
+            ValueError: 사용자가 존재하지 않거나 체크리스트 결과가 없는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
+        """
+        # 사용자 유효성 검증
+        ChecklistResultService.validate_user(user_id)
+        
+        try:
+            result = ChecklistResultRepository.update_memo(
+                checklist_result_id=checklist_result_id,
+                memo=memo
+            )
+            if not result:
+                raise ValueError(f"체크리스트 결과 ID {checklist_result_id}를 찾을 수 없습니다.")
+            return result
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def find_all_results_by_contract(user_id: int, contract_id: int) -> Dict[str, Any]:
+        """
+        계약서 ID별 체크리스트 결과를 조회합니다.
+        
+        Args:
+            user_id: 요청한 사용자 ID
+            contract_id: 계약서 ID
+            
+        Returns:
+            Dict[str, Any]: 계약서와 체크리스트 결과 정보
+            
+        Raises:
+            ValueError: 사용자가 존재하지 않는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
+        """
+        # 사용자 유효성 검증
+        ChecklistResultService.validate_user(user_id)
+        
+        try:
+            results = ChecklistResultRepository.find_all_checklist_results_by_contract(
+                contract_id=contract_id
+            )
+            return results
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def delete_result_value(user_id: int, value_id: int) -> bool:
+        """
+        체크리스트 결과 값을 삭제합니다.
+        
+        Args:
+            user_id: 요청한 사용자 ID
+            value_id: 삭제할 체크리스트 결과 값 ID
+            
+        Returns:
+            bool: 성공 여부
+            
+        Raises:
+            ValueError: 사용자가 존재하지 않거나 체크리스트 결과 값이 없는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
+        """
+        # 사용자 유효성 검증
+        ChecklistResultService.validate_user(user_id)
+        
+        # 결과 값 존재 확인
+        value = ChecklistResultRepository.get_value_by_value_id(value_id)
+        if not value:
+            raise ValueError(f"체크리스트 결과 값 ID {value_id}를 찾을 수 없습니다.")
+        
+        try:
+            result = ChecklistResultRepository.delete_checklist_result_value(value_id=value_id)
+            if not result:
+                raise ValueError(f"체크리스트 결과 값 ID {value_id} 삭제 중 오류가 발생했습니다.")
+            return result
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def delete_result(user_id: int, result_id: int) -> bool:
+        """
+        체크리스트 결과를 삭제합니다.
+        
+        Args:
+            user_id: 요청한 사용자 ID
+            result_id: 삭제할 체크리스트 결과 ID
+            
+        Returns:
+            bool: 성공 여부
+            
+        Raises:
+            ValueError: 사용자가 존재하지 않거나 체크리스트 결과가 없는 경우
+            PermissionError: 사용자 계정이 비활성화된 경우
+        """
+        # 사용자 유효성 검증
+        ChecklistResultService.validate_user(user_id)
+        
+        try:
+            result = ChecklistResultRepository.delete_checklist_result(result_id=result_id)
+            if not result:
+                raise ValueError(f"체크리스트 결과 ID {result_id}를 찾을 수 없습니다.")
+            return result
+        except Exception as e:
+            raise e
