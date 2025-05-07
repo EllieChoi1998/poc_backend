@@ -23,12 +23,25 @@ class ChecklistResultRepository:
     ) -> bool:
         with ChecklistResultRepository.DB() as (cursor, conn):
             try:
+                # 먼저 해당 계약서-체크리스트 조합의 결과가 이미 존재하는지 확인
                 cursor.execute(
-                    'INSERT INTO checklist_result (contract_id, checklist_id) VALUES (%s, %s)',
+                    'SELECT id FROM checklist_result WHERE contract_id = %s AND checklist_id = %s',
                     (contract_id, checklist_id)
                 )
-                checklist_result_id = cursor.lastrowid
+                existing_result = cursor.fetchone()
+                
+                if existing_result:
+                    # 이미 결과가 존재하면 해당 결과에 새 값을 추가
+                    checklist_result_id = existing_result['id']
+                else:
+                    # 결과가 없으면 새로 생성
+                    cursor.execute(
+                        'INSERT INTO checklist_result (contract_id, checklist_id) VALUES (%s, %s)',
+                        (contract_id, checklist_id)
+                    )
+                    checklist_result_id = cursor.lastrowid
 
+                # 체크리스트 결과 값 추가
                 if checklist_result_values:
                     for crv in checklist_result_values:
                         cursor.execute(
