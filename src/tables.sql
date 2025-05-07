@@ -79,6 +79,93 @@ CREATE TABLE keypoint_result(
     UNIQUE KEY unique_contract_terms (contract_id, termsNconditions_id)
 );
 
+CREATE TABLE instruction_pef (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    performer_id INT,
+    file_name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (performer_id) REFERENCES user(id)
+);
+
+CREATE TABLE instruction_pef_result (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    instruction_pef_id INT,
+    is_fund_item VARCHAR(1) DEFAULT 'F',
+    company_detail TEXT DEFAULT NULL,
+    FOREIGN KEY (instruction_pef_id) REFERENCES instruction_pef(id) ON DELETE CASCADE
+);
+
+CREATE TABLE transaction_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    instruction_pef_result_id INT,
+    deal_type VARCHAR(255),
+    deal_object VARCHAR(255),
+    bank_name VARCHAR(255),
+    account_number VARCHAR(255),
+    holder_name VARCHAR(255),
+    amount VARCHAR(255),
+    process_date TIMESTAMP,
+    FOREIGN KEY (instruction_pef_result_id) REFERENCES instruction_pef_result(id) ON DELETE CASCADE
+);
+
+CREATE TABLE other_specifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    instruction_pef_result_id INT,
+    other_specs_text TEXT,
+    other_specs_detail TEXT,
+    FOREIGN KEY (instruction_pef_result_id) REFERENCES instruction_pef_result(id) ON DELETE CASCADE
+);
+
+CREATE TABLE instruction_special (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    performer_id INT,
+    file_name VARCHAR(255) UNIQUE NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (performer_id) REFERENCES user(id)
+);
+
+CREATE TABLE instruction_special_result (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    instruction_special_id INT,
+    result_content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usability VARCHAR(1) DEFAULT 'F',
+    average_quality VARCHAR(255),
+    saved_json_file_path TEXT,
+    FOREIGN KEY (instruction_special_id) REFERENCES instruction_special(id) ON DELETE CASCADE
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 INSERT INTO team(name, department) VALUES ('컴플라이언스', '수탁사업부');
 INSERT INTO team(name, department) VALUES ('계약팀', '수탁사업부');
 INSERT INTO team(name, department) VALUES ('영업팀', '수탁사업부');
