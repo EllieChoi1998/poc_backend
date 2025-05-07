@@ -74,9 +74,9 @@ CREATE TABLE keypoint_result(
     termsNconditions_id INT,
     match_rate FLOAT,
     FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL,
-    FOREIGN KEY (termsNconditions_id) REFERENCES termsNconditions(id) ON DELETE CASCADE
+    FOREIGN KEY (termsNconditions_id) REFERENCES termsNconditions(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_contract_terms (contract_id, termsNconditions_id)
 );
-
 
 INSERT INTO team(name, department) VALUES ('컴플라이언스', '수탁사업부');
 INSERT INTO team(name, department) VALUES ('계약팀', '수탁사업부');

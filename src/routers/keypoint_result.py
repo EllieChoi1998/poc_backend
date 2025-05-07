@@ -18,7 +18,7 @@ async def add_keypoint_result_by_user(
     """사용자가 키포인트 결과를 추가합니다."""
     try:
         current_user_id = current_user["id"]
-        result = KeypointResultService.add_by_user(
+        KeypointResultService.add_by_user(
             user_id=current_user_id,
             contract_id=keypoint_result.contract_id,
             termsNconditions_id=keypoint_result.termsNconditions_id
@@ -29,7 +29,7 @@ async def add_keypoint_result_by_user(
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="서버 오류가 발생했습니다.")
+        raise HTTPException(status_code=500, detail=f"서버 오류가 발생했습니다.\n{e}")
 
 @router.post("/add-by-ai", response_model=Dict[str, str])
 async def add_keypoint_result_by_ai(
@@ -37,7 +37,7 @@ async def add_keypoint_result_by_ai(
 ):
     """AI가 키포인트 결과를 추가합니다."""
     try:
-        result = KeypointResultService.add_by_ai(
+        KeypointResultService.add_by_ai(
             match_rate=keypoint_result.match_rate,
             contract_id=keypoint_result.contract_id,
             termsNconditions_id=keypoint_result.termsNconditions_id
@@ -76,7 +76,7 @@ async def delete_keypoint_result(
     """키포인트 결과를 삭제합니다."""
     try:
         current_user_id = current_user["id"]
-        result = KeypointResultService.delete_keypoint_result(
+        KeypointResultService.delete_keypoint_result(
             user_id=current_user_id,
             keypoint_result_id=keypoint_result_id
         )

@@ -39,7 +39,7 @@ class KeypointResultService:
             result = KeypointResultRepository.create_result_by_user(
                 contract_id=contract_id,
                 terms_id=termsNconditions_id,
-                match_rate=match_rate
+                # match_rate=match_rate
             )
             return result
         except ValueError:
