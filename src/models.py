@@ -63,3 +63,48 @@ class AIKeypointResultCreate(BaseModel):
     contract_id: int
     termsNconditions_id: int
     match_rate: float
+
+
+class InstructionPEF(BaseModel):
+    id: Optional[int] = None
+    performer_id: int
+    file_name: str
+    created_at: Optional[datetime] = None
+
+class InstructionPEFResult(BaseModel):
+    id: Optional[int] = None
+    instruction_pef_id: int
+    is_fund_item: Optional[str] = 'F'
+    company_detail: Optional[str] = None
+
+class TransactionHistory(BaseModel):
+    id: Optional[int] = None
+    instruction_pef_result_id: int
+    deal_type: Optional[str] = None
+    deal_object: Optional[str] = None
+    bank_name: Optional[str] = None
+    account_number: Optional[str] = None
+    holder_name: Optional[str] = None
+    amount: Optional[str] = None
+    process_date: Optional[datetime] = None
+
+class OtherSpecifications(BaseModel):
+    id: Optional[int] = None
+    instruction_pef_result_id: int
+    other_specs_text: Optional[str] = None
+    other_specs_detail: Optional[str] = None
+
+class InstructionSpecial(BaseModel):
+    id: Optional[int] = None
+    performer_id: int
+    file_name: str
+    uploaded_at: Optional[datetime] = None
+
+class InstructionSpecialResult(BaseModel):
+    id: Optional[int] = None
+    instruction_special_id: int
+    result_content: Optional[str] = None
+    created_at: Optional[datetime] = None
+    usability: Optional[str] = 'F'
+    average_quality: Optional[str] = None
+    saved_json_file_path: Optional[str] = None
