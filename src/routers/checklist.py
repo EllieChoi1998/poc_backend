@@ -28,7 +28,7 @@ async def add_checklist(
         raise HTTPException(status_code=500, detail="서버 오류가 발생했습니다.")
 
     
-@router.get("/get-all", response_model=List[Dict[str, Any]])
+@router.get("/get-all", response_model=List[Checklist])
 async def get_all_checklist(current_user: Dict[str, Any] = Depends(get_current_user)):
     """모든 체크리스트 항목을 조회합니다."""
     try:
@@ -46,7 +46,7 @@ async def update_checklist(
         current_user_id = current_user["id"]
         return ChecklistService.edit_question(
             current_user_id=current_user_id, 
-            checklist_id=checklist.checklist_id,
+            checklist_id=checklist.id,
             question=checklist.question
         )
     except PermissionError as e:

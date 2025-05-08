@@ -55,95 +55,41 @@ class ContractService:
         ContractService.validate_active_user(current_user_id=user_id)
         raw_data = ContractRepository.get_all_contracts()
         
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
-        
-        # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        # ✅ 딕셔너리 형태 그대로 사용
+        return [Contract(**row) for row in raw_data]
 
-    
+
     @staticmethod
     def get_only_uploaded_contracts(user_id: int) -> List[Contract]:
         ContractService.validate_active_user(current_user_id=user_id)
         raw_data = ContractRepository.get_only_uploaded_contracts()
-
-        
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
         
         # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        return [Contract(**data) for data in raw_data]
     
     @staticmethod
     def get_on_progress_checklist_contracts(user_id: int) -> List[Contract]:
         ContractService.validate_active_user(current_user_id=user_id)
         raw_data = ContractRepository.get_on_progress_checklist_contracts()
-
-        
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
         
         # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        return [Contract(**data) for data in raw_data]
     
     @staticmethod
     def get_finished_checklist_contracts(user_id: int) -> List[Contract]:
         ContractService.validate_active_user(current_user_id=user_id)
         raw_data = ContractRepository.get_finished_checklist_contracts()
-
-        
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
         
         # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        return [Contract(**data) for data in raw_data]
     
     @staticmethod
     def get_on_progress_keypoint_contracts(user_id: int) -> List[Contract]:
         ContractService.validate_active_user(current_user_id=user_id)
         raw_data = ContractRepository.get_on_progress_keypoint_contracts()
-
-        
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
         
         # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        return [Contract(**data) for data in raw_data]
     
     @staticmethod
     def get_finished_keypoint_contracts(user_id: int) -> List[Contract]:
@@ -151,15 +97,5 @@ class ContractService:
         raw_data = ContractRepository.get_finished_keypoint_contracts()
 
         
-        # 튜플을 딕셔너리로 변환
-        columns = [
-            "id", "contract_name", "file_name", "embedding_id", "uploader_id",
-            "keypoint_processer_id", "checklist_processer_id", "uploaded_at", 
-            "keypoint_processed", "checklist_processed", "checklist_printable_file_path", "current_state"
-        ]
-        
-        # raw_data는 튜플이므로, 이를 딕셔너리로 변환
-        dict_data = [dict(zip(columns, row)) for row in raw_data]
-        
         # Contract 모델로 객체 생성
-        return [Contract(**data) for data in dict_data]
+        return [Contract(**data) for data in raw_data]

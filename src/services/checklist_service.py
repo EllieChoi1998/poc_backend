@@ -112,7 +112,4 @@ class ChecklistService:
         """
         raw_data = ChecklistRepository.get_all_questions()
         # (id, question) 튜플을 딕셔너리로 변환
-        return [
-            {"checklist_id": checklist_id, "question": question}
-            for checklist_id, question in raw_data
-        ]
+        return [Checklist(**raw) for raw in raw_data]

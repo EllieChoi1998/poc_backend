@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -21,7 +21,7 @@ class LogoutRequest(BaseModel):
     user_id: int
 
 class Checklist(BaseModel):
-    checklist_id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
+    id: Optional[int] = None  # 수정: create시에는 ID가 없을 수 있으므로 Optional 추가
     question: str
 
 class TermsNConditions(BaseModel):
@@ -94,6 +94,14 @@ class OtherSpecifications(BaseModel):
     other_specs_text: Optional[str] = None
     other_specs_detail: Optional[str] = None
 
+class InstructionPEFResultDetail(InstructionPEFResult):
+    transaction_history: List[TransactionHistory] = []
+    other_specifications: List[OtherSpecifications] = []
+
+class InstructionPEFDetail(InstructionPEF):
+    result: Optional[InstructionPEFResultDetail] = None
+
+
 class InstructionSpecial(BaseModel):
     id: Optional[int] = None
     performer_id: int
@@ -108,3 +116,4 @@ class InstructionSpecialResult(BaseModel):
     usability: Optional[str] = 'F'
     average_quality: Optional[str] = None
     saved_json_file_path: Optional[str] = None
+

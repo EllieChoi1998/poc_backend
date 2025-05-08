@@ -148,10 +148,12 @@ class ContractRepository:
         finally:
             BaseRepository.close_db(conn=conn, cursor=cursor)
 
-    # @staticmethod
-    # def delete_contract(id: int) -> bool:
-    #     cursor, conn = ContractRepository.open_db()
-    #     try:
+    @staticmethod
+    def delete_contract(id: int) -> bool:
+        with BaseRepository.DB() as (cursor, conn):
+            cursor.execute('DELETE FROM contract WHERE id= %s', (id, ))
+            conn.commit()
+            return cursor.rowcount > 0
 
     @staticmethod
     def find_by_file_path(contract_name: str, file_name: str) -> Optional[Dict[str, Any]]:
