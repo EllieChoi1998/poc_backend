@@ -35,7 +35,7 @@ CREATE TABLE checklist (
 CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_name TEXT NOT NULL,
-    file_name TEXT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
     embedding_id TEXT DEFAULT NULL,
     uploader_id INT,
     keypoint_processer_id INT DEFAULT NULL,
@@ -48,7 +48,8 @@ CREATE TABLE contract(
 
     FOREIGN KEY (uploader_id) REFERENCES user(id) ON DELETE SET NULL,
     FOREIGN KEY (keypoint_processer_id) REFERENCES user(id) ON DELETE SET NULL,
-    FOREIGN KEY (checklist_processer_id) REFERENCES user(id) ON DELETE SET NULL
+    FOREIGN KEY (checklist_processer_id) REFERENCES user(id) ON DELETE SET NULL,
+    UNIQUE KEY unique_filename (file_name)
 );
 
 CREATE TABLE checklist_result(
