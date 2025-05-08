@@ -3,7 +3,7 @@ from database import get_db_connection
 
 class BaseRepository:
     @staticmethod
-    def open_db(dictionary=False):
+    def open_db(dictionary=True):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=dictionary)
         return cursor, conn
@@ -14,7 +14,7 @@ class BaseRepository:
         conn.close()
 
     class DB:
-        def __init__(self, dictionary=False):
+        def __init__(self, dictionary=True):
             self.dictionary = dictionary
 
         def __enter__(self):

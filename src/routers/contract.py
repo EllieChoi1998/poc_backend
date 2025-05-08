@@ -25,7 +25,7 @@ async def upload_contract_file(
     """
     try:
         # 1. 파일 저장
-        file_path = os.path.join(UPLOAD_DIR, file.filename)
+        file_path = os.path.join(UPLOAD_DIR, f"{contract_name}_{file.filename}")
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
