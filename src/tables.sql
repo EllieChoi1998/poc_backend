@@ -9,12 +9,12 @@ CREATE TABLE user (
     login_id VARCHAR(100) UNIQUE NOT NULL,
     ibk_id VARCHAR(100) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
-    password TEXT NOT NULL,
+    password VARCHAR(4000) NOT NULL,
     hiearchy VARCHAR(100) NOT NULL,
     system_role VARCHAR(10) NOT NULL,
     activate VARCHAR(1) DEFAULT 'T',
     team_id INT,
-    refresh_token TEXT NULL,
+    refresh_token VARCHAR(4000) NULL,
     FOREIGN KEY (team_id) REFERENCES team(id) ON DELETE SET NULL
 );
 
@@ -28,22 +28,22 @@ CREATE TABLE termsNconditions (
 
 CREATE TABLE checklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    question TEXT,
+    question VARCHAR(4000),
     UNIQUE KEY unique_question (question(255))
 );
 
 CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    contract_name TEXT NOT NULL,
+    contract_name VARCHAR(4000) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    embedding_id TEXT DEFAULT NULL,
+    embedding_id VARCHAR(4000) DEFAULT NULL,
     uploader_id INT,
     keypoint_processer_id INT DEFAULT NULL,
     checklist_processer_id INT DEFAULT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     keypoint_processed TIMESTAMP DEFAULT NULL,
     checklist_processed TIMESTAMP DEFAULT NULL,
-    checklist_printable_file_path TEXT DEFAULT NULL,
+    checklist_printable_file_path VARCHAR(4000) DEFAULT NULL,
     current_state INT DEFAULT 0,
 
     FOREIGN KEY (uploader_id) REFERENCES user(id) ON DELETE SET NULL,
@@ -55,7 +55,7 @@ CREATE TABLE checklist_result(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_id INT,
     checklist_id INT,
-    memo TEXT DEFAULT NULL,
+    memo VARCHAR(4000) DEFAULT NULL,
     FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE CASCADE,
     FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE,
     UNIQUE KEY unique_contract_checklist (contract_id, checklist_id)
@@ -64,7 +64,7 @@ CREATE TABLE checklist_result(
 CREATE TABLE checklist_result_value(
     id INT AUTO_INCREMENT PRIMARY KEY,
     checklist_result_id INT,
-    clause_num TEXT,
+    clause_num VARCHAR(4000),
     located_page INT,
     FOREIGN KEY (checklist_result_id) REFERENCES checklist_result(id) ON DELETE CASCADE
 );
@@ -84,16 +84,12 @@ CREATE TABLE instruction_pef (
     performer_id INT,
     file_name VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_fund_item VARCHAR(1) DEFAULT 'F',
+    company_detail VARCHAR(4000) DEFAULT NULL,
+    other_specs_text VARCHAR(4000) DEFAULT NULL,
     FOREIGN KEY (performer_id) REFERENCES user(id)
 );
 
-CREATE TABLE instruction_pef_result (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    instruction_pef_id INT,
-    is_fund_item VARCHAR(1) DEFAULT 'F',
-    company_detail TEXT DEFAULT NULL,
-    FOREIGN KEY (instruction_pef_id) REFERENCES instruction_pef(id) ON DELETE CASCADE
-);
 
 CREATE TABLE transaction_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,13 +104,7 @@ CREATE TABLE transaction_history (
     FOREIGN KEY (instruction_pef_result_id) REFERENCES instruction_pef_result(id) ON DELETE CASCADE
 );
 
-CREATE TABLE other_specifications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    instruction_pef_result_id INT,
-    other_specs_text TEXT,
-    other_specs_detail TEXT,
-    FOREIGN KEY (instruction_pef_result_id) REFERENCES instruction_pef_result(id) ON DELETE CASCADE
-);
+
 
 CREATE TABLE instruction_special (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -127,11 +117,11 @@ CREATE TABLE instruction_special (
 CREATE TABLE instruction_special_result (
     id INT AUTO_INCREMENT PRIMARY KEY,
     instruction_special_id INT,
-    result_content TEXT,
+    result_content VARCHAR(4000),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usability VARCHAR(1) DEFAULT 'F',
     average_quality VARCHAR(255),
-    saved_json_file_path TEXT,
+    saved_json VARCHAR(4000),
     FOREIGN KEY (instruction_special_id) REFERENCES instruction_special(id) ON DELETE CASCADE
 );
 
