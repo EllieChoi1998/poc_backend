@@ -24,17 +24,17 @@ async def upload_contract_file(
     계약서 파일 업로드 및 DB 등록
     """
     try:
-        # 1. 파일 저장
-        file_path = os.path.join(UPLOAD_DIR, f"{contract_name}_{file.filename}")
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        # 2. 서비스 계층 호출
+        # 1. 서비스 계층 호출
         result = ContractService.upload_contract(
             uploader_id=current_user["id"],
             contract_name=contract_name,
             file_name=file.filename
         )
+
+        # 2. 파일 저장
+        file_path = os.path.join(UPLOAD_DIR, f"{contract_name}_{file.filename}")
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
         return JSONResponse(content={
             "message": result["message"],

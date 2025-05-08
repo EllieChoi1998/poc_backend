@@ -35,7 +35,7 @@ CREATE TABLE checklist (
 CREATE TABLE contract(
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_name TEXT NOT NULL,
-    file_name VARCHAR(255) UNIQUE NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
     embedding_id TEXT DEFAULT NULL,
     uploader_id INT,
     keypoint_processer_id INT DEFAULT NULL,
