@@ -1,21 +1,12 @@
-from database import get_db_connection
+from base_repository import BaseRepository
 from typing import Optional, Dict, Any, List
 
 class ChecklistRepository:
-    @staticmethod
-    def open_db():
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        return cursor, conn
     
-    @staticmethod
-    def close_db(conn, cursor):
-        cursor.close()
-        conn.close()
 
     @staticmethod
     def create_question(question: str) -> bool:
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
 
         try:
             cursor.execute(
@@ -29,11 +20,11 @@ class ChecklistRepository:
             conn.rollback()
             raise e
         finally:
-            ChecklistRepository.close_db(conn=conn, cursor=cursor)
+            BaseRepository.close_db(conn=conn, cursor=cursor)
 
     @staticmethod
     def update_question(checklist_id: int, question: str) -> bool:
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute(
                 'UPDATE checklist SET question = %s WHERE id = %s',
@@ -45,41 +36,41 @@ class ChecklistRepository:
             conn.rollback()
             raise e
         finally:
-            ChecklistRepository.close_db(conn=conn, cursor=cursor)
+            BaseRepository.close_db(conn=conn, cursor=cursor)
     
     @staticmethod
     def get_all_questions() -> List[Dict[str, Any]]:  # 수정: 반환 타입 명확히 지정
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute('SELECT * FROM checklist')
             return cursor.fetchall()
         finally:
-            ChecklistRepository.close_db(cursor=cursor, conn=conn)
+            BaseRepository.close_db(cursor=cursor, conn=conn)
 
     @staticmethod
     def delete_question(question_id: int) -> bool:
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute('DELETE FROM checklist WHERE id=%s', (question_id,))  # 수정: 튜플로 변경
             conn.commit()
             return cursor.rowcount > 0
         finally:
-            ChecklistRepository.close_db(conn=conn, cursor=cursor)
+            BaseRepository.close_db(conn=conn, cursor=cursor)
 
     @staticmethod
     def find_by_question(question: str) -> Optional[Dict[str, Any]]:  # 수정: 반환 타입 명확히 지정
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute('SELECT * FROM checklist WHERE question=%s', (question,))  # 수정: 튜플로 변경
             return cursor.fetchone()  # 수정: 단일 결과 반환으로 변경
         finally:
-            ChecklistRepository.close_db(cursor=cursor, conn=conn)
+            BaseRepository.close_db(cursor=cursor, conn=conn)
 
     @staticmethod
     def find_by_id(id: int) -> Optional[Dict[str, Any]]:  # 수정: 반환 타입 추가
-        cursor, conn = ChecklistRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute('SELECT * FROM checklist WHERE id=%s', (id,))  # 수정: 튜플로 변경
             return cursor.fetchone()
         finally:
-            ChecklistRepository.close_db(cursor=cursor, conn=conn)
+            BaseRepository.close_db(cursor=cursor, conn=conn)

@@ -1,19 +1,9 @@
 from typing import Optional, Dict, Any, List
 from models import Checklist_Result_Value
-from database import get_db_connection
+from base_repository import BaseRepository
 
 
-class ChecklistResultRepository:
-
-    class DB:
-        def __enter__(self):
-            self.conn = get_db_connection()
-            self.cursor = self.conn.cursor(dictionary=True)
-            return self.cursor, self.conn
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.cursor.close()
-            self.conn.close()
+class ChecklistResultRepository():
 
     @staticmethod
     def create_result(
@@ -21,7 +11,7 @@ class ChecklistResultRepository:
         contract_id: int,
         checklist_id: int
     ) -> bool:
-        with ChecklistResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 # 먼저 해당 계약서-체크리스트 조합의 결과가 이미 존재하는지 확인
                 cursor.execute(
@@ -57,7 +47,7 @@ class ChecklistResultRepository:
 
     @staticmethod
     def update_memo(checklist_result_id: int, memo: str) -> bool:
-        with ChecklistResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 cursor.execute(
                     'UPDATE checklist_result SET memo = %s WHERE id = %s',
@@ -71,7 +61,7 @@ class ChecklistResultRepository:
 
     @staticmethod
     def find_all_checklist_results_by_contract(contract_id: int) -> Optional[Dict[str, Any]]:
-        with ChecklistResultRepository.DB() as (cursor, _):
+        with BaseRepository.DB() as (cursor, _):
             cursor.execute("""
                 SELECT 
                     c.id AS contract_id,
@@ -153,20 +143,20 @@ class ChecklistResultRepository:
 
     @staticmethod
     def delete_checklist_result_value(value_id: int) -> bool:
-        with ChecklistResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             cursor.execute('DELETE FROM checklist_result_value WHERE id = %s', (value_id,))
             conn.commit()
             return cursor.rowcount > 0
 
     @staticmethod
     def delete_checklist_result(result_id: int) -> bool:
-        with ChecklistResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             cursor.execute('DELETE FROM checklist_result WHERE id = %s', (result_id,))
             conn.commit()
             return cursor.rowcount > 0
 
     @staticmethod
     def get_value_by_value_id(value_id: int) -> Optional[Dict[str, Any]]:
-        with ChecklistResultRepository.DB() as (cursor, _):
+        with BaseRepository.DB() as (cursor, _):
             cursor.execute('SELECT * FROM checklist_result_value WHERE id = %s', (value_id,))
             return cursor.fetchone()

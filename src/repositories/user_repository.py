@@ -1,41 +1,31 @@
 from database import get_db_connection
 from typing import Optional, Dict, Any, List
-
+from base_repository import BaseRepository
 class UserRepository:
-    @staticmethod
-    def open_db():
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        return cursor, conn
-    
-    @staticmethod
-    def close_db(conn, cursor):
-        cursor.close()
-        conn.close()
 
     @staticmethod
     def find_by_login_id(login_id: str) -> Optional[Dict[str, Any]]:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE login_id = %s', (login_id,))
             return cursor.fetchone()
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
     
     @staticmethod
     def find_by_ibk_id(ibk_id: str) -> Optional[Dict[str, Any]]:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE ibk_id = %s', (ibk_id,))
             return cursor.fetchone()
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
     
     @staticmethod
     def create_user(user_data: Dict[str, Any]) -> bool:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute(
@@ -53,11 +43,11 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
     
     @staticmethod
     def update_refresh_token(user_id: int, refresh_token: Optional[str]) -> bool:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute(
@@ -70,27 +60,27 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
     
     @staticmethod
     def find_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE id = %s', (user_id,))
             return cursor.fetchone()
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
             
     @staticmethod
     def find_all() -> List[Dict[str, Any]]:
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             cursor.execute('SELECT * FROM user WHERE activate = "T"')  # 활성화된 사용자만 조회
             return cursor.fetchall()
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
 
     @staticmethod
     def update(user_id: int, user_data: Dict[str, Any]) -> bool:
@@ -104,7 +94,7 @@ class UserRepository:
         Returns:
             bool: 업데이트 성공 여부
         """
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             # 업데이트할 필드와 값을 동적으로 구성
@@ -132,7 +122,7 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
 
     @staticmethod
     def delete(user_id: int) -> bool:
@@ -146,7 +136,7 @@ class UserRepository:
         Returns:
             bool: 삭제 성공 여부
         """
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         
         try:
             sql = "UPDATE user SET activate = 'F' WHERE id = %s"
@@ -159,7 +149,7 @@ class UserRepository:
             conn.rollback()
             raise e
         finally:
-            UserRepository.close_db(conn, cursor)
+            BaseRepository.close_db(conn, cursor)
 
     @staticmethod
     def find_user_activation(user_id: int) -> bool:
@@ -167,7 +157,7 @@ class UserRepository:
         특정 사용자의 활성화 여부를 확인합니다.
         """
 
-        cursor, conn = UserRepository.open_db()
+        cursor, conn = BaseRepository.open_db()
         try:
             sql = "SELECT * FROM user WHERE id=%s AND activate='T'"
             cursor.execute(sql, (user_id,))
@@ -176,4 +166,4 @@ class UserRepository:
         except Exception as e:
             return False
         finally:
-            UserRepository.close_db(conn=conn, cursor=cursor)
+            BaseRepository.close_db(conn=conn, cursor=cursor)

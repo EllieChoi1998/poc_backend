@@ -1,20 +1,11 @@
 from typing import Optional, Dict, Any, List
 from database import get_db_connection
-
+from base_repository import BaseRepository
 class KeypointResultRepository:
-
-    class DB:
-        def __enter__(self):
-            self.conn = get_db_connection()
-            self.cursor = self.conn.cursor(dictionary=True)
-            return self.cursor, self.conn
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.cursor.close()
-            self.conn.close()
 
     @staticmethod
     def create_result_by_ai(contract_id: int, terms_id: int, match_rate: float) -> bool:
-        with KeypointResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 cursor.execute(
                     'INSERT INTO keypoint_result(contract_id, termsNconditions_id, match_rate) VALUES(%s, %s, %s)',
@@ -28,7 +19,7 @@ class KeypointResultRepository:
             
     @staticmethod
     def create_result_by_user(contract_id: int, terms_id: int) -> bool:
-        with KeypointResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 cursor.execute(
                     'SELECT * FROM keypoint_result WHERE contract_id=%s AND termsNconditions_id=%s',
@@ -78,7 +69,7 @@ class KeypointResultRepository:
             }
         '''
         
-        with KeypointResultRepository.DB() as (cursor, _):
+        with BaseRepository.DB() as (cursor, _):
             cursor.execute("""
                 SELECT 
                     c.id AS contract_id,
@@ -121,7 +112,7 @@ class KeypointResultRepository:
 
     @staticmethod
     def delete_keypoint_result(result_id: int) -> bool:
-        with KeypointResultRepository.DB() as (cursor, conn):
+        with BaseRepository.DB() as (cursor, conn):
             cursor.execute('DELETE FROM keypoint_result WHERE id= %s', (result_id, ))
             conn.commit()
             return cursor.rowcount > 0
