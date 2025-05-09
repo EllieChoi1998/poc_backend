@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime, date
 
@@ -105,3 +105,31 @@ class Attachment(BaseModel):
     id: Optional[int] = None
     instruction_special_id: int
     file_name: str
+
+
+# ========= OCR Related Models ==================
+class Point(BaseModel):
+    x: int
+    y: int
+
+class OcrBox(BaseModel):
+    label: str
+    left_top: Point
+    right_top: Point
+    right_bottom: Point
+    left_bottom: Point
+    confidence_score: float
+
+class OcrResult(BaseModel):
+    fid: str = ""
+    total_pages: int = 0
+    full_text: str = ""
+    page_file_data: str = ""
+    rotate: Optional[int] = None
+    boxes: List[OcrBox] = []
+
+class WorkerStatus(BaseModel):
+    status: str
+    workers: int
+    busy: int
+    pending: int
