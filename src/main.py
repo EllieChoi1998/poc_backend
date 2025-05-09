@@ -1,17 +1,37 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result
+from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result, ocr
 from services.system_service import SystemService
-# from src.routers import file
+from services.ocr_service import OcrService
+import os
+from dotenv import load_dotenv
+
+# 환경 변수 로드
+load_dotenv()
+
+# OCR 서비스 관련 환경 변수
+OCR_LICENSE_KEY = os.getenv("OCR_LICENSE_KEY")
+OCR_BASE_URL = os.getenv("OCR_BASE_URL")
 
 app = FastAPI(title="IBK API", description="IBK Backend API Server")
 
-# 애플리케이션 시작 시 시스템 계정 초기화
+# 애플리케이션 시작 시 시스템 계정 및 OCR 서비스 초기화
 @app.on_event("startup")
 async def startup_event():
     print("애플리케이션 시작: 시스템 계정 초기화 중...")
     SystemService.initialize_system_account()
     print("시스템 초기화 완료")
+    
+    # OCR 서비스 초기화
+    if OCR_LICENSE_KEY and OCR_BASE_URL:
+        print(f"OCR 서비스 초기화 중... (서버: {OCR_BASE_URL})")
+        try:
+            OcrService.initialize(OCR_LICENSE_KEY, OCR_BASE_URL)
+            print("OCR 서비스 초기화 완료")
+        except Exception as e:
+            print(f"OCR 서비스 초기화 실패: {str(e)}")
+    else:
+        print("OCR_LICENSE_KEY 또는 OCR_BASE_URL 환경 변수가 설정되지 않아 OCR 서비스를 초기화하지 않습니다.")
 
 # CORS 설정
 app.add_middleware(
@@ -30,6 +50,7 @@ app.include_router(checklist.router, prefix="/checklist", tags=["Checklist"])
 app.include_router(termsNconditons.router, prefix="/terms", tags=["Terms and Conditions"])
 app.include_router(keypoint_result.router, prefix="/keypoint-results", tags=["Keypoint Results"])
 app.include_router(checklist_result.router, prefix="/checklist-results", tags=["Checklist Results"])
+app.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
 
 @app.get("/")
 async def root():

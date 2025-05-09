@@ -1,47 +1,22 @@
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException
+from typing import Dict, List, Optional, Any, Union
 import httpx
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Any, Union
-import time
-from pydantic import BaseModel
-from fastapi.responses import Response, JSONResponse
+from fastapi import HTTPException, UploadFile
 import io
+import time
 
-# 필요한 모델 클래스 정의
-class Point(BaseModel):
-    x: int
-    y: int
+# 모델 가져오기
+from models import Point, OcrBox, OcrResult, WorkerStatus
 
-class OcrBox(BaseModel):
-    label: str
-    left_top: Point
-    right_top: Point
-    right_bottom: Point
-    left_bottom: Point
-    confidence_score: float
-
-class OcrResult(BaseModel):
-    fid: str = ""
-    total_pages: int = 0
-    full_text: str = ""
-    page_file_data: str = ""
-    rotate: Optional[int] = None
-    boxes: List[OcrBox] = []
-
-class WorkerStatus(BaseModel):
-    status: str
-    workers: int
-    busy: int
-    pending: int
-
-# 로깅 설정
+# 로그 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# OCR 엔진 클래스
-class OcrEngine:
+class OcrService:
+    _instance = None
+
     def __init__(self, license_key: str, base_url: str):
         if not license_key or license_key.strip() == "":
             raise ValueError("라이센스 키가 필요합니다.")
@@ -61,71 +36,64 @@ class OcrEngine:
         self.worker_status_url = f"{base_url}/worker-status/"
 
         # 타임아웃 설정으로 httpx 클라이언트 생성
-        self.http_client = httpx.Client(timeout=60.0)
+        self.http_client = httpx.AsyncClient(timeout=60.0)
 
         # 로그
+        logger.info(f"OCR 서비스 초기화: 라이센스 키={license_key[:3]}***")
         logger.info(f"OCR URL: {self.ocr_url}")
         logger.info(f"DOWNLOAD URL: {self.download_url}")
 
-    @staticmethod
-    def create_ocr_engine(api_key: str, server_addr: str) -> 'OcrEngine':
-        if not api_key or api_key.strip() == "":
-            raise ValueError("라이센스 키가 필요합니다.")
-        
-        engine = OcrEngine(api_key, server_addr)
-        return engine
+    @classmethod
+    def initialize(cls, license_key: str, server_addr: str) -> 'OcrService':
+        """OCR 서비스의 싱글톤 인스턴스를 초기화하고 반환합니다."""
+        if cls._instance is None:
+            if not license_key or license_key.strip() == "":
+                raise ValueError("라이센스 키가 필요합니다.")
+            cls._instance = OcrService(license_key, server_addr)
+        return cls._instance
 
-    def ocr(self, image_file, fid: str, page_index: str, path: str,
-            restoration: str, rot_angle: bool, bbox_roi: str,
-            type_: str, recog_form: bool) -> OcrResult:
-        return self.process_ocr(image_file, fid, page_index, path, restoration,
-                               rot_angle, bbox_roi, type_, recog_form)
-
-    def process_ocr(self, image_file, fid: str, page_index: str, path: str,
-                   restoration: str, rot_angle: bool, bbox_roi: str,
-                   type_: str, recog_form: bool) -> OcrResult:
-        try:
-            return self.perform_ocr(image_file, fid, page_index, path, restoration,
-                                   rot_angle, bbox_roi, type_, recog_form)
-        except Exception as e:
-            logger.error(f"OCR 처리 중 오류 발생 (파일: {getattr(image_file, 'filename', 'unknown')})", exc_info=True)
-            raise RuntimeError("OCR 처리 실패") from e
+    @classmethod
+    def get_instance(cls) -> Optional['OcrService']:
+        """초기화된 OCR 서비스 인스턴스를 반환합니다."""
+        return cls._instance
 
     def determine_content_type(self, file_name: str) -> str:
+        """파일 이름에서 콘텐츠 타입을 결정합니다."""
         file_name = file_name.lower()
         if file_name.endswith(".pdf"):
             return "application/pdf"
         elif file_name.endswith(".png"):
             return "image/png"
+        elif file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
+            return "image/jpeg"
         elif file_name.endswith(".tiff") or file_name.endswith(".tif"):
             return "image/tiff"
         return "application/octet-stream"
 
-    def perform_ocr(self, image_file, fid: str, page_index: str, path: str,
-                   restoration: str, rot_angle: bool, bbox_roi: str,
-                   type_: str, recog_form: bool) -> OcrResult:
-        # 파일 이름에서 콘텐츠 타입 결정
+    async def ocr(self, image_file: UploadFile, fid: str, page_index: str, path: str,
+                 restoration: str, rot_angle: bool, bbox_roi: str,
+                 type_: str, recog_form: bool) -> OcrResult:
+        """OCR을 수행합니다."""
         try:
-            if hasattr(image_file, 'filename'):
-                content_type = self.determine_content_type(image_file.filename)
-                file_content = image_file.file.read()
-                file_name = image_file.filename
-            else:
-                # 파일 객체인 경우
-                file_name = os.path.basename(image_file.name)
-                content_type = self.determine_content_type(file_name)
-                file_content = image_file.read()
-        except AttributeError:
-            # bytes나 BytesIO인 경우
-            content_type = "application/octet-stream"
-            file_content = image_file
-            file_name = "file.bin"
+            return await self.perform_ocr(image_file, fid, page_index, path, restoration,
+                                     rot_angle, bbox_roi, type_, recog_form)
+        except Exception as e:
+            logger.error(f"OCR 처리 중 오류 발생 (파일: {image_file.filename})", exc_info=True)
+            raise RuntimeError("OCR 처리 실패") from e
 
+    async def perform_ocr(self, image_file: UploadFile, fid: str, page_index: str, path: str,
+                        restoration: str, rot_angle: bool, bbox_roi: str,
+                        type_: str, recog_form: bool) -> OcrResult:
+        """실제 OCR 처리를 수행합니다."""
+        # 콘텐츠 타입 결정
+        content_type = self.determine_content_type(image_file.filename)
+        file_content = await image_file.read()
+        
         try:
             start_time = time.time()
             
             # 폼 데이터 구성
-            files = {'imagefile': (file_name, file_content, content_type)}
+            files = {'imagefile': (image_file.filename, file_content, content_type)}
             data = {
                 'fid': fid or "",
                 'page_index': page_index or "0",
@@ -139,9 +107,9 @@ class OcrEngine:
             }
 
             # API 요청
-            response = self.http_client.post(self.ocr_url, files=files, data=data)
+            response = await self.http_client.post(self.ocr_url, files=files, data=data)
             duration_ms = (time.time() - start_time) * 1000
-            logger.info(f"API 요청 응답 시간: {duration_ms:.2f} ms")
+            logger.info(f"OCR API 요청 응답 시간: {duration_ms:.2f} ms")
 
             # 응답 확인
             if response.status_code != 200:
@@ -149,13 +117,22 @@ class OcrEngine:
                 raise HTTPException(status_code=response.status_code, detail="OCR API 요청 실패")
 
             # 응답 파싱
-            return self.parse_response(response.text)
+            ocr_result = self.parse_response(response.text)
+            
+            # 여기서 OCR 결과에 대한 추가 처리를 수행할 수 있음
+            # 예: 결과 필터링, 분석, 데이터베이스 저장 등
+            
+            return ocr_result
             
         except httpx.HTTPError as e:
             logger.error("OCR 요청 실패", exc_info=True)
             raise RuntimeError("OCR 실행 중 오류가 발생했습니다.") from e
+        finally:
+            # 파일 포인터 위치 리셋
+            await image_file.seek(0)
 
     def parse_response(self, response_text: str) -> OcrResult:
+        """OCR API 응답을 파싱합니다."""
         if not response_text:
             raise RuntimeError("빈 응답이 반환되었습니다.")
         
@@ -165,7 +142,7 @@ class OcrEngine:
             
             if not isinstance(ocr_result_node, list):
                 logger.error(f"OCR 응답에 'ocr_result' 필드가 없거나 올바르지 않습니다. 응답: {response_text}")
-                raise RuntimeError("OCR 응답 오류: 'ocr_result' or 누락")
+                raise RuntimeError("OCR 응답 오류: 'ocr_result' 누락")
 
             full_text_builder = []
             boxes = []
@@ -197,21 +174,23 @@ class OcrEngine:
                 total_pages=root_node.get("totalpage", 0),
                 full_text=" ".join(full_text_builder).strip(),
                 page_file_data=root_node.get("file_path", ""),
-                boxes=boxes
+                boxes=boxes,
+                rotate=root_node.get("rotate", 0)  # 회전 정보 추가
             )
             
         except Exception as e:
             logger.error("OCR 응답 파싱 실패", exc_info=True)
             raise RuntimeError("OCR 실행 중 오류 발생") from e
 
-    def download_img(self, file_path: str) -> bytes:
+    async def download_img(self, file_path: str) -> bytes:
+        """파일을 다운로드합니다."""
         data = {
             'lic': self.license_key,
             'path': file_path
         }
         
         try:
-            response = self.http_client.post(self.download_url, data=data)
+            response = await self.http_client.post(self.download_url, data=data)
             
             if response.status_code != 200:
                 logger.error(f"파일 다운로드 실패. HTTP 상태 코드: {response.status_code}, 응답 내용: {response.text}")
@@ -223,9 +202,10 @@ class OcrEngine:
             logger.error(f"파일 다운로드 중 오류 발생. path: {file_path}", exc_info=True)
             raise RuntimeError("파일 다운로드 중 오류가 발생했습니다.") from e
 
-    def get_worker_status(self) -> WorkerStatus:
+    async def get_worker_status(self) -> WorkerStatus:
+        """워커 상태를 확인합니다."""
         try:
-            response = self.http_client.post(self.worker_status_url)
+            response = await self.http_client.post(self.worker_status_url)
             
             if response.status_code != 200:
                 logger.error(f"상태 조회 실패. HTTP 상태 코드: {response.status_code}, 응답 내용: {response.text}")
@@ -238,12 +218,14 @@ class OcrEngine:
             logger.error(f"상태 조회 중 오류 발생. URL: {self.worker_status_url}", exc_info=True)
             raise RuntimeError("상태 조회 중 오류가 발생했습니다.") from e
 
-    def ocr_to_map(self, image_file, fid: str, page_index: str, path: str,
-                  restoration: str, rot_angle: bool, bbox_roi: str,
-                  type_: str, recog_form: bool) -> Dict[str, Any]:
-        ocr_result = self.ocr(image_file, fid, page_index, path, restoration,
-                             rot_angle, bbox_roi, type_, recog_form)
+    async def ocr_to_map(self, image_file: UploadFile, fid: str, page_index: str, path: str,
+                        restoration: str, rot_angle: bool, bbox_roi: str,
+                        type_: str, recog_form: bool) -> Dict[str, Any]:
+        """OCR 결과를 맵 형태로 변환합니다."""
+        ocr_result = await self.ocr(image_file, fid, page_index, path, restoration,
+                                  rot_angle, bbox_roi, type_, recog_form)
         
+        # OCR 결과를 맵으로 변환
         result_map = {
             "fid": ocr_result.fid,
             "fullText": ocr_result.full_text,
@@ -266,93 +248,44 @@ class OcrEngine:
                 boxes_list.append(box_map)
         
         result_map["boxes"] = boxes_list
+        
+        # 여기서 결과에 대한 추가 처리를 수행할 수 있음
+        # 예: 특정 텍스트 추출, 특정 패턴 검색, 결과 필터링 등
+        
         return result_map
 
-
-# FastAPI Router 생성
-router = APIRouter(prefix="/ocr", tags=["OCR"])
-
-# OcrEngine 인스턴스를 생성하기 위한 전역 변수
-ocr_engine: Optional[OcrEngine] = None
-
-def initialize_ocr_engine(license_key: str, base_url: str):
-    """OCR 엔진을 초기화합니다."""
-    global ocr_engine
-    ocr_engine = OcrEngine(license_key, base_url)
-    return ocr_engine
-
-def get_ocr_engine() -> OcrEngine:
-    """초기화된 OCR 엔진을 반환합니다."""
-    if ocr_engine is None:
-        raise RuntimeError("OCR 엔진이 초기화되지 않았습니다.")
-    return ocr_engine
-
-@router.post("/do-ocr/")
-async def do_ocr(
-    image_file: UploadFile = File(...),
-    fid: str = Form(""),
-    page_index: str = Form("0"),
-    path: str = Form(""),
-    restoration: str = Form(""),
-    rot_angle: bool = Form(False),
-    bbox_roi: str = Form(""),
-    type_: str = Form(...),
-    recog_form: bool = Form(False)
-):
-    """이미지를 OCR 처리합니다."""
-    try:
-        engine = get_ocr_engine()
-        ocr_result = engine.ocr(
-            image_file, fid, page_index, path, restoration,
-            rot_angle, bbox_roi, type_, recog_form
+    # 예시: OCR 결과에서 특정 패턴을 추출하는 메서드 추가
+    async def extract_pattern(self, image_file: UploadFile, pattern_type: str) -> Dict[str, Any]:
+        """OCR 결과에서 특정 패턴(예: 주민등록번호, 계약번호 등)을 추출합니다."""
+        # 기본 OCR 수행
+        ocr_result = await self.ocr(
+            image_file, "", "0", "", "", False, "", "auto", False
         )
-        return JSONResponse(content=ocr_result.dict())
-    except Exception as e:
-        logger.error("OCR 처리 중 오류 발생", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        
+        # 추출된 패턴을 저장할 결과 딕셔너리
+        extracted_data = {
+            "original_text": ocr_result.full_text,
+            "pattern_type": pattern_type,
+            "extracted_values": []
+        }
+        
+        # 패턴 타입에 따른 추출 로직
+        if pattern_type == "주민번호":
+            # 주민번호 패턴 추출 로직 구현
+            # 예: 정규식 매칭, 형식 검증 등
+            pass
+        elif pattern_type == "계약번호":
+            # 계약번호 패턴 추출 로직 구현
+            pass
+        elif pattern_type == "금액":
+            # 금액 패턴 추출 로직 구현
+            pass
+        
+        return extracted_data
 
-@router.post("/download_file/")
-async def download_file(path: str = Form(...)):
-    """파일을 다운로드합니다."""
-    try:
-        engine = get_ocr_engine()
-        file_content = engine.download_img(path)
-        return Response(content=file_content)
-    except Exception as e:
-        logger.error("파일 다운로드 중 오류 발생", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/worker-status/")
-async def worker_status():
-    """워커 상태를 확인합니다."""
-    try:
-        engine = get_ocr_engine()
-        status = engine.get_worker_status()
-        return status
-    except Exception as e:
-        logger.error("워커 상태 확인 중 오류 발생", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/ocr-to-map/")
-async def ocr_to_map(
-    image_file: UploadFile = File(...),
-    fid: str = Form(""),
-    page_index: str = Form("0"),
-    path: str = Form(""),
-    restoration: str = Form(""),
-    rot_angle: bool = Form(False),
-    bbox_roi: str = Form(""),
-    type_: str = Form(...),
-    recog_form: bool = Form(False)
-):
-    """이미지를 OCR 처리하고 결과를 맵 형태로 반환합니다."""
-    try:
-        engine = get_ocr_engine()
-        result_map = engine.ocr_to_map(
-            image_file, fid, page_index, path, restoration,
-            rot_angle, bbox_roi, type_, recog_form
-        )
-        return result_map
-    except Exception as e:
-        logger.error("OCR 맵 변환 중 오류 발생", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+# 싱글톤 인스턴스 가져오기 위한 함수 (FastAPI dependency로 사용)
+def get_ocr_service() -> OcrService:
+    service = OcrService.get_instance()
+    if service is None:
+        raise HTTPException(status_code=500, detail="OCR 서비스가 초기화되지 않았습니다.")
+    return service

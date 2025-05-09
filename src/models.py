@@ -109,8 +109,8 @@ class Attachment(BaseModel):
 
 # ========= OCR Related Models ==================
 class Point(BaseModel):
-    x: int
-    y: int
+    x: float
+    y: float
 
 class OcrBox(BaseModel):
     label: str
@@ -121,15 +121,18 @@ class OcrBox(BaseModel):
     confidence_score: float
 
 class OcrResult(BaseModel):
-    fid: str = ""
-    total_pages: int = 0
-    full_text: str = ""
-    page_file_data: str = ""
-    rotate: Optional[int] = None
+    fid: str
+    total_pages: int
+    full_text: str
+    page_file_data: str
     boxes: List[OcrBox] = []
+    rotate: int = 0  # 회전 정보 추가
 
 class WorkerStatus(BaseModel):
+    cpu_usage: float
+    memory_usage: float
+    gpu_usage: Optional[float] = None
+    active_workers: int
+    total_workers: int
+    queue_size: int
     status: str
-    workers: int
-    busy: int
-    pending: int
