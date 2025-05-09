@@ -105,7 +105,6 @@ CREATE TABLE transaction_history (
 );
 
 
-
 CREATE TABLE instruction_special (
     id INT AUTO_INCREMENT PRIMARY KEY,
     performer_id INT,

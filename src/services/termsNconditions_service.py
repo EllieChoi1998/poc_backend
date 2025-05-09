@@ -117,7 +117,4 @@ class TermsNConditionsService:
         """
         raw_data = TermsNConditionsRepository.get_all_querys()
         # (id, query) 튜플을 딕셔너리로 변환
-        return [
-            {"termsNconditions_id": termsNconditions_id, "code": code, "query": query}
-            for termsNconditions_id, code, query in raw_data
-        ]
+        return raw_data
