@@ -93,7 +93,7 @@ CREATE TABLE instruction_pef (
 
 CREATE TABLE transaction_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    instruction_pef_result_id INT,
+    instruction_pef_id INT,
     deal_type VARCHAR(255),
     deal_object VARCHAR(255),
     bank_name VARCHAR(255),
@@ -101,7 +101,7 @@ CREATE TABLE transaction_history (
     holder_name VARCHAR(255),
     amount VARCHAR(255),
     process_date TIMESTAMP,
-    FOREIGN KEY (instruction_pef_result_id) REFERENCES instruction_pef_result(id) ON DELETE CASCADE
+    FOREIGN KEY (instruction_pef_id) REFERENCES instruction_pef(id) ON DELETE CASCADE
 );
 
 

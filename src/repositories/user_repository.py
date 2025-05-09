@@ -77,7 +77,7 @@ class UserRepository:
         cursor, conn = BaseRepository.open_db()
         
         try:
-            cursor.execute('SELECT * FROM user WHERE activate = "T"')  # 활성화된 사용자만 조회
+            cursor.execute('SELECT * FROM user')  # 활성화된 사용자만 조회
             return cursor.fetchall()
         finally:
             BaseRepository.close_db(conn, cursor)
