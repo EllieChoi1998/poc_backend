@@ -1,28 +1,9 @@
 from repositories.termsNconditions_repository import TermsNConditionsRepository
-from repositories.user_repository import UserRepository
-from models import User, Checklist
+from base_service import BaseService
 from typing import List, Dict, Any
-import logging
+
 
 class TermsNConditionsService:
-    @staticmethod
-    def validate_system_user(current_user_id: int) -> None:  # 수정: 반환 타입 지정
-        """
-        유저 검증을 합니다.
-        
-        Args:
-            current_user_id: 현재 로그인한 사용자 ID
-        Raises:
-            ValueError: 사용자를 찾을 수 없는 경우
-            PermissionError: 시스템 관리자 권한이 없는 경우
-        """
-        # 현재 사용자 정보 조회
-        current_user = UserRepository.find_by_id(current_user_id)
-        logging.info(current_user)
-        if not current_user:
-            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
-        
-    
     @staticmethod
     def add_query(current_user_id: int, code: str, query: str) -> dict:
         """
@@ -38,7 +19,7 @@ class TermsNConditionsService:
             PermissionError: 권한이 없는 경우
             ValueError: 제한명 중복 또는 등록 실패
         """
-        TermsNConditionsService.validate_system_user(current_user_id=current_user_id)
+        BaseService.validate_user(current_user_id)
 
         # query 중복 확인
         if TermsNConditionsRepository.find_by_query(query=query):
@@ -67,7 +48,7 @@ class TermsNConditionsService:
             PermissionError: 권한이 없는 경우
             ValueError: 현존하는 제한명이 아닌 경우 또는 수정 실패
         """
-        TermsNConditionsService.validate_system_user(current_user_id=current_user_id)
+        BaseService.validate_user(current_user_id)
         
         # query 실존 여부 확인
         if not TermsNConditionsRepository.find_by_id(termsNconditions_id):
@@ -96,7 +77,7 @@ class TermsNConditionsService:
             PermissionError: 권한이 없는 경우
             ValueError: 현존하는 제한명이 아닌 경우 또는 삭제 실패
         """
-        TermsNConditionsService.validate_system_user(current_user_id=current_user_id)
+        BaseService.validate_user(current_user_id)
         
         # query 실존 여부 확인
         if not TermsNConditionsRepository.find_by_id(termsNconditions_id):

@@ -4,33 +4,9 @@ from fastapi import HTTPException
 import bcrypt
 from auth.jwt_utils import create_access_token, create_refresh_token, verify_token
 from typing import Dict, Any, List
-import logging
+from base_service import BaseService
 
 class UserService:
-    @staticmethod
-    def check_system_admin(user_id: int) -> Dict[str, Any]:
-        """
-        사용자가 시스템 관리자인지 확인하고 사용자 정보를 반환합니다.
-        
-        Args:
-            user_id: 확인할 사용자 ID
-            
-        Returns:
-            Dict[str, Any]: 사용자 정보
-            
-        Raises:
-            ValueError: 사용자를 찾을 수 없는 경우
-            PermissionError: 사용자가 시스템 관리자가 아닌 경우
-        """
-        # 현재 사용자 정보 조회
-        current_user = UserRepository.find_by_id(user_id)
-        if not current_user:
-            raise ValueError(f"사용자 ID {user_id}를 찾을 수 없습니다.")
-        
-        if current_user.get('system_role') != 'SYSTEM':
-            raise PermissionError("이 작업은 시스템 관리자만 수행할 수 있습니다.")
-            
-        return current_user
 
     @staticmethod
     def register_user(current_user_id: int, user: User) -> dict:
@@ -50,7 +26,7 @@ class UserService:
             ValueError: 사용자 중복 또는 등록 실패
         """
         # 시스템 관리자 권한 확인
-        UserService.check_system_admin(current_user_id)
+        BaseService.check_system_admin(current_user_id)
         
         # login_id 중복 확인
         if UserRepository.find_by_login_id(user.login_id):
@@ -198,7 +174,7 @@ class UserService:
             ValueError: 사용자를 찾을 수 없는 경우
         """
         # 시스템 관리자 권한 확인
-        UserService.check_system_admin(user_id)
+        BaseService.check_system_admin(user_id)
         
         # 저장소에서 모든 사용자 정보 가져오기
         return UserRepository.find_all()
@@ -281,7 +257,7 @@ class UserService:
             ValueError: 사용자를 찾을 수 없는 경우, 삭제에 실패한 경우
         """
         # 시스템 관리자 권한 확인
-        UserService.check_system_admin(current_user_id)
+        BaseService.check_system_admin(current_user_id)
         
         # 타겟 사용자 정보 조회
         target_user = UserRepository.find_by_id(user_id)

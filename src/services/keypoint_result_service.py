@@ -1,15 +1,8 @@
-from typing import Optional, Dict, Any, List
-from repositories.user_repository import UserRepository
+from typing import Dict, Any
 from repositories.keypoint_result_repository import KeypointResultRepository
+from base_service import BaseService
 
 class KeypointResultService:
-    @staticmethod
-    def validate_checklist_user(user_id: int) -> None:
-        user = UserRepository.find_by_id(user_id=user_id)
-        if not user:
-            raise ValueError(f"ID {user_id} 사용자가 존재하지 않습니다.")
-        if not UserRepository.find_user_activation(user_id=user_id):
-            raise PermissionError(f"사용자 ID {user_id} 계정은 비활성화(삭제)된 계정입니다.")
 
     @staticmethod
     def add_by_user(user_id: int, contract_id: int, termsNconditions_id: int) -> bool:
@@ -29,7 +22,7 @@ class KeypointResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        KeypointResultService.validate_checklist_user(user_id)
+        BaseService.validate_user(user_id)
         
         # 기본 매치 레이트 (사용자 입력으로 100%)
         match_rate = 100.0
@@ -96,7 +89,7 @@ class KeypointResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        KeypointResultService.validate_checklist_user(user_id)
+        BaseService.validate_user(user_id)
         
         # 결과 조회
         results = KeypointResultRepository.find_result_by_contract_id(contract_id=contract_id)
@@ -123,7 +116,7 @@ class KeypointResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        KeypointResultService.validate_checklist_user(user_id)
+        BaseService.validate_user(user_id)
         
         # 결과 삭제
         result = KeypointResultRepository.delete_keypoint_result(result_id=keypoint_result_id)

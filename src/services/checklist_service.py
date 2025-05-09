@@ -2,26 +2,10 @@ from repositories.checklist_repository import ChecklistRepository
 from repositories.user_repository import UserRepository
 from models import User, Checklist
 from typing import List, Dict, Any
-
+from base_service import BaseService
 
 class ChecklistService:
-    @staticmethod
-    def validate_system_user(current_user_id: int) -> None:  # 수정: 반환 타입 지정
-        """
-        시스템 관리자 권한을 검증합니다.
-        
-        Args:
-            current_user_id: 현재 로그인한 사용자 ID
-        Raises:
-            ValueError: 사용자를 찾을 수 없는 경우
-            PermissionError: 시스템 관리자 권한이 없는 경우
-        """
-        # 현재 사용자 정보 조회
-        current_user = UserRepository.find_by_id(current_user_id)
-        if not current_user:
-            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
-        if current_user.get('system_role') != 'SYSTEM':
-            raise PermissionError("시스템 관리자만 체크리스트 항목을 관리할 수 있습니다.")
+
     
     @staticmethod
     def add_question(current_user_id: int, question: str) -> dict:
@@ -38,7 +22,7 @@ class ChecklistService:
             PermissionError: 권한이 없는 경우
             ValueError: 문항 중복 또는 등록 실패
         """
-        ChecklistService.validate_system_user(current_user_id=current_user_id)
+        BaseService.check_system_admin(current_user_id)
 
         # question 중복 확인
         if ChecklistRepository.find_by_question(question=question):
@@ -65,7 +49,7 @@ class ChecklistService:
             PermissionError: 권한이 없는 경우
             ValueError: 현존하는 문항이 아닌 경우 또는 수정 실패
         """
-        ChecklistService.validate_system_user(current_user_id=current_user_id)
+        BaseService.check_system_admin(current_user_id)
 
         # question 실존 여부 확인
         if not ChecklistRepository.find_by_id(checklist_id):
@@ -91,7 +75,7 @@ class ChecklistService:
             PermissionError: 권한이 없는 경우
             ValueError: 현존하는 문항이 아닌 경우 또는 삭제 실패
         """
-        ChecklistService.validate_system_user(current_user_id=current_user_id)
+        BaseService.check_system_admin(current_user_id)
         
         # question 실존 여부 확인
         if not ChecklistRepository.find_by_id(checklist_id):

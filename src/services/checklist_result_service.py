@@ -2,25 +2,9 @@ from repositories.checklist_result_repository import ChecklistResultRepository
 from repositories.user_repository import UserRepository
 from typing import List, Dict, Any, Optional
 from models import Checklist_Result_Value
-
+from base_service import BaseService
 
 class ChecklistResultService:
-    @staticmethod
-    def validate_user(user_id: int) -> None:
-        """
-        사용자의 존재 및 활성화 여부를 검증합니다.
-        
-        Args:
-            user_id: 검증할 사용자 ID
-        Raises:
-            ValueError: 사용자를 찾을 수 없는 경우
-            PermissionError: 사용자 계정이 비활성화된 경우
-        """
-        user = UserRepository.find_by_id(user_id=user_id)
-        if not user:
-            raise ValueError(f"ID {user_id} 사용자가 존재하지 않습니다.")
-        if not UserRepository.find_user_activation(user_id=user_id):
-            raise PermissionError(f"사용자 ID {user_id} 계정은 비활성화(삭제)된 계정입니다.")
 
     @staticmethod
     def create_result(
@@ -46,7 +30,7 @@ class ChecklistResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        ChecklistResultService.validate_user(user_id)
+        BaseService.validate_user(user_id)
         
         try:
             result = ChecklistResultRepository.create_result(
@@ -76,7 +60,7 @@ class ChecklistResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        ChecklistResultService.validate_user(user_id)
+        BaseService.validate_user(user_id)
         
         try:
             result = ChecklistResultRepository.update_memo(
@@ -106,7 +90,7 @@ class ChecklistResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        ChecklistResultService.validate_user(user_id)
+        BaseService.validate_user(user_id)
         
         try:
             results = ChecklistResultRepository.find_all_checklist_results_by_contract(
@@ -133,7 +117,7 @@ class ChecklistResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        ChecklistResultService.validate_user(user_id)
+        BaseService.validate_user(user_id)
         
         # 결과 값 존재 확인
         value = ChecklistResultRepository.get_value_by_value_id(value_id)
@@ -165,7 +149,7 @@ class ChecklistResultService:
             PermissionError: 사용자 계정이 비활성화된 경우
         """
         # 사용자 유효성 검증
-        ChecklistResultService.validate_user(user_id)
+        BaseService.validate_user(user_id)
         
         try:
             result = ChecklistResultRepository.delete_checklist_result(result_id=result_id)

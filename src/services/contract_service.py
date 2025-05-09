@@ -2,28 +2,10 @@ from repositories.contract_repository import ContractRepository
 from repositories.user_repository import UserRepository
 from typing import List, Dict, Any
 from models import Contract
+from base_service import BaseService
+
 
 class ContractService:
-    @staticmethod
-    def validate_active_user(current_user_id: int) -> None:  # 수정: 반환 타입 지정
-        """
-        유저 검증을 합니다.
-        
-        Args:
-            current_user_id: 현재 로그인한 사용자 ID
-        Raises:
-            ValueError: 사용자를 찾을 수 없는 경우
-            PermissionError: 시스템 관리자 권한이 없는 경우
-        """
-        # 현재 사용자 정보 조회
-        current_user = UserRepository.find_by_id(current_user_id)
-        
-        if not current_user:
-            raise ValueError(f"사용자 ID {current_user_id}를 찾을 수 없습니다.")
-        
-        if not UserRepository.find_user_activation(user_id=current_user_id):
-            raise PermissionError(f"사용자 ID {current_user_id} 계정은 비활성화(삭제)된 계정 입니다.")
-
 
     @staticmethod
     def upload_contract(uploader_id: int, contract_name: str, file_name: str) -> dict:
@@ -41,7 +23,7 @@ class ContractService:
             PermissionError: 활성화된 사용자 여부
             ValueError: 파일 저장 경로 (contract_name, file_name이 모두 중복되는 경우) 중복 또는 등록 실패
         """
-        ContractService.validate_active_user(current_user_id=uploader_id)
+        BaseService.validate_user(uploader_id)
         
         if ContractRepository.find_by_file_path(contract_name=contract_name, file_name=file_name):
             raise ValueError(f"이미 존재하는 파일 입니다. 삭제 후 다시 업로드 해 주세요.")
@@ -52,7 +34,7 @@ class ContractService:
 
     @staticmethod
     def get_all_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_all_contracts()
         
         # ✅ 딕셔너리 형태 그대로 사용
@@ -61,7 +43,7 @@ class ContractService:
 
     @staticmethod
     def get_only_uploaded_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_only_uploaded_contracts()
         
         # Contract 모델로 객체 생성
@@ -69,7 +51,7 @@ class ContractService:
     
     @staticmethod
     def get_on_progress_checklist_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_on_progress_checklist_contracts()
         
         # Contract 모델로 객체 생성
@@ -77,7 +59,7 @@ class ContractService:
     
     @staticmethod
     def get_finished_checklist_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_finished_checklist_contracts()
         
         # Contract 모델로 객체 생성
@@ -85,7 +67,7 @@ class ContractService:
     
     @staticmethod
     def get_on_progress_keypoint_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_on_progress_keypoint_contracts()
         
         # Contract 모델로 객체 생성
@@ -93,7 +75,7 @@ class ContractService:
     
     @staticmethod
     def get_finished_keypoint_contracts(user_id: int) -> List[Contract]:
-        ContractService.validate_active_user(current_user_id=user_id)
+        BaseService.validate_user(user_id)
         raw_data = ContractRepository.get_finished_keypoint_contracts()
 
         
