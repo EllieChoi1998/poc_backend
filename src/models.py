@@ -1,6 +1,6 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field
-from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel
+from datetime import datetime, date
 
 class User(BaseModel):
     login_id: str
@@ -69,51 +69,39 @@ class InstructionPEF(BaseModel):
     id: Optional[int] = None
     performer_id: int
     file_name: str
-    created_at: Optional[datetime] = None
-
-class InstructionPEFResult(BaseModel):
-    id: Optional[int] = None
-    instruction_pef_id: int
-    is_fund_item: Optional[str] = 'F'
-    company_detail: Optional[str] = None
+    created_at: Optional[datetime]
+    is_fund_item: Optional[str]
+    company_detail: Optional[str]
+    other_specs_text: Optional[str]
 
 class TransactionHistory(BaseModel):
     id: Optional[int] = None
-    instruction_pef_result_id: int
-    deal_type: Optional[str] = None
-    deal_object: Optional[str] = None
-    bank_name: Optional[str] = None
-    account_number: Optional[str] = None
-    holder_name: Optional[str] = None
-    amount: Optional[str] = None
-    process_date: Optional[datetime] = None
-
-class OtherSpecifications(BaseModel):
-    id: Optional[int] = None
-    instruction_pef_result_id: int
-    other_specs_text: Optional[str] = None
-    other_specs_detail: Optional[str] = None
-
-class InstructionPEFResultDetail(InstructionPEFResult):
-    transaction_history: List[TransactionHistory] = []
-    other_specifications: List[OtherSpecifications] = []
-
-class InstructionPEFDetail(InstructionPEF):
-    result: Optional[InstructionPEFResultDetail] = None
-
+    instruction_pef_id: int
+    deal_type: str
+    deal_object: str
+    bank_name: str
+    account_number: str
+    holder_name: str
+    amount: str
+    process_date: date
 
 class InstructionSpecial(BaseModel):
     id: Optional[int] = None
-    performer_id: int
+    performer_id : int
     file_name: str
-    uploaded_at: Optional[datetime] = None
+    uploaded_at: Optional[datetime]
 
 class InstructionSpecialResult(BaseModel):
     id: Optional[int] = None
     instruction_special_id: int
-    result_content: Optional[str] = None
-    created_at: Optional[datetime] = None
-    usability: Optional[str] = 'F'
-    average_quality: Optional[str] = None
-    saved_json_file_path: Optional[str] = None
+    result_content: Optional[str]
+    created_at: Optional[datetime]
+    usability: Optional[str]
+    all_qualities: Optional[str]
+    average_quality: Optional[str]
+    saved_json: Optional[str]
 
+class Attachment(BaseModel):
+    id: Optional[int] = None
+    instruction_special_id: int
+    file_name: str

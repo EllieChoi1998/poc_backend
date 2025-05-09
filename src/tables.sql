@@ -100,7 +100,7 @@ CREATE TABLE transaction_history (
     account_number VARCHAR(255),
     holder_name VARCHAR(255),
     amount VARCHAR(255),
-    process_date TIMESTAMP,
+    process_date DATE,
     FOREIGN KEY (instruction_pef_id) REFERENCES instruction_pef(id) ON DELETE CASCADE
 );
 
@@ -119,8 +119,16 @@ CREATE TABLE instruction_special_result (
     result_content VARCHAR(4000),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usability VARCHAR(1) DEFAULT 'F',
+    all_qualities VARCHAR(500),
     average_quality VARCHAR(255),
     saved_json VARCHAR(4000),
+    FOREIGN KEY (instruction_special_id) REFERENCES instruction_special(id) ON DELETE CASCADE
+);
+
+CREATE TABLE attachment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    instruction_special_id INT,
+    file_name VARCHAR(255) UNIQUE NOT NULL,
     FOREIGN KEY (instruction_special_id) REFERENCES instruction_special(id) ON DELETE CASCADE
 );
 
