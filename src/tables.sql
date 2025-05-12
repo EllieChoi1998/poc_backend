@@ -134,8 +134,58 @@ CREATE TABLE attachment (
 
 
 
+-- OCR 파일 테이블
+CREATE TABLE IF NOT EXISTS ocr_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(512) NOT NULL,
+    engine_type VARCHAR(20) NOT NULL COMMENT 'OCR 엔진 유형 (GMS 등)',
+    ocr_file_status VARCHAR(20) NOT NULL COMMENT '처리 상태 (READY, PROCESSING, COMPLETE, ERROR)',
+    total_page INT DEFAULT 0,
+    fid VARCHAR(255) DEFAULT NULL COMMENT 'OCR 서버에서 반환한 파일 ID',
+    created_date DATETIME NOT NULL,
+    contract_id INT DEFAULT NULL,
+    FOREIGN KEY (contract_id) REFERENCES contract(id) ON DELETE SET NULL,
+    INDEX idx_created_date (created_date),
+    INDEX idx_file_name (file_name),
+    INDEX idx_contract_id (contract_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- OCR 페이지 테이블
+CREATE TABLE IF NOT EXISTS ocr_pages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ocr_file_id INT NOT NULL,
+    page INT NOT NULL,
+    full_text TEXT,
+    executed_at DATETIME NOT NULL,
+    execute_seconds FLOAT NOT NULL,
+    ocr_status VARCHAR(20) NOT NULL COMMENT '처리 상태 (SUCCESS, FAIL)',
+    page_file_data TEXT COMMENT 'OCR 처리된 이미지 파일 경로',
+    rotate FLOAT DEFAULT 0.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ocr_file_id) REFERENCES ocr_files(id) ON DELETE CASCADE,
+    INDEX idx_ocr_file_id (ocr_file_id),
+    INDEX idx_page (page)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- OCR 박스 테이블 (텍스트 영역 정보)
+CREATE TABLE IF NOT EXISTS ocr_boxes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ocr_page_id INT NOT NULL,
+    label TEXT,
+    left_top_x INT NOT NULL,
+    left_top_y INT NOT NULL,
+    right_top_x INT NOT NULL,
+    right_top_y INT NOT NULL,
+    right_bottom_x INT NOT NULL,
+    right_bottom_y INT NOT NULL,
+    left_bottom_x INT NOT NULL,
+    left_bottom_y INT NOT NULL,
+    confidence_score FLOAT DEFAULT 0.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ocr_page_id) REFERENCES ocr_pages(id) ON DELETE CASCADE,
+    INDEX idx_ocr_page_id (ocr_page_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 

@@ -1,6 +1,7 @@
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import Optional, List, Any
 from datetime import datetime, date
+from enum import Enum
+from pydantic import BaseModel, Field
 
 class User(BaseModel):
     login_id: str
@@ -108,9 +109,22 @@ class Attachment(BaseModel):
 
 
 # ========= OCR Related Models ==================
+class OcrEngineType(str, Enum):
+    GMS = "GMS"
+
+class OcrFileStatus(str, Enum):
+    READY = "READY"
+    PROCESSING = "PROCESSING"
+    COMPLETE = "COMPLETE" 
+    ERROR = "ERROR"
+
+class OcrStatus(str, Enum):
+    SUCCESS = "SUCCESS"
+    FAIL = "FAIL"
+
 class Point(BaseModel):
-    x: float
-    y: float
+    x: int
+    y: int
 
 class OcrBox(BaseModel):
     label: str
@@ -118,21 +132,102 @@ class OcrBox(BaseModel):
     right_top: Point
     right_bottom: Point
     left_bottom: Point
-    confidence_score: float
+    confidence_score: float = 0.0
 
 class OcrResult(BaseModel):
-    fid: str
-    total_pages: int
+    fid: str = ""
+    total_pages: int = 0
+    rotate: float = 0.0
+    full_text: str = ""
+    page_file_data: str = ""
+    boxes: List[OcrBox] = Field(default_factory=list)
+
+class OcrPageBase(BaseModel):
+    page: int
     full_text: str
+    executed_at: datetime
+    execute_seconds: float
+    ocr_status: OcrStatus
     page_file_data: str
-    boxes: List[OcrBox] = []
-    rotate: int = 0  # 회전 정보 추가
+    rotate: float = 0.0
+
+class OcrPage(OcrPageBase):
+    id: Optional[int] = None
+    ocr_file_id: int
+    ocr_boxes: List[OcrBox] = Field(default_factory=list)
+    
+    class Config:
+        orm_mode = True
+
+class OcrPageCreate(OcrPageBase):
+    ocr_result: OcrResult
+    ocr_boxes: List[OcrBox] = Field(default_factory=list)
+
+class OcrFileBase(BaseModel):
+    file_name: str
+    file_path: str
+    engine_type: OcrEngineType
+    ocr_file_status: OcrFileStatus = OcrFileStatus.READY
+    total_page: int = 0
+    fid: str = ""
+
+class OcrFile(OcrFileBase):
+    id: Optional[int] = None
+    created_date: datetime
+    contract_id: Optional[int] = None
+    ocr_pages: List[OcrPage] = Field(default_factory=list)
+    
+    class Config:
+        orm_mode = True
+
+class OcrFileCreate(OcrFileBase):
+    created_date: datetime
+    contract_id: Optional[int] = None
+
+class OcrFileUpdate(BaseModel):
+    total_page: Optional[int] = None
+    fid: Optional[str] = None
+    ocr_file_status: Optional[OcrFileStatus] = None
+
+class OcrBoxCreate(BaseModel):
+    ocr_page_id: int
+    label: str
+    left_top_x: int
+    left_top_y: int
+    right_top_x: int
+    right_top_y: int
+    right_bottom_x: int
+    right_bottom_y: int
+    left_bottom_x: int
+    left_bottom_y: int
+    confidence_score: float = 0.0
+
+class WorkerDetail(BaseModel):
+    worker_id: int
+    is_busy: bool
 
 class WorkerStatus(BaseModel):
-    cpu_usage: float
-    memory_usage: float
-    gpu_usage: Optional[float] = None
-    active_workers: int
     total_workers: int
-    queue_size: int
-    status: str
+    busy_workers: int
+    worker_details: List[WorkerDetail] = Field(default_factory=list)
+
+# API 응답 모델
+class OcrProcessResponse(BaseModel):
+    success: bool
+    message: str
+    ocr_status: str
+    ocr_file_id: Optional[int] = None
+    # 다른 필드들은 Any 타입으로 정의하여 유연하게 처리
+    additional_info: Optional[Any] = None
+    
+    # Pydantic v2 호환 설정
+    model_config = {
+        "extra": "allow",  # 추가 필드 허용
+        "populate_by_name": True,  # 이름으로 매핑
+    }
+class OcrResultResponse(BaseModel):
+    success: bool
+    message: str
+    ocr_status: str
+    file_info: Optional[dict] = None
+    ocr_result: Optional[dict] = None

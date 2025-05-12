@@ -6,6 +6,9 @@ services:
       - "8888:8888" # FastAPI uvicorn
     depends_on:
       - mysql_db  # "db" -> "mysql_db"로 수정
+    env_file:
+      - .env  # 환경변수 파일 지정
+    
     environment:
       - DATABASE_HOST=mysql_db  # 컨테이너 이름과 맞춤
       - DATABASE_USER=root

@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 
 class ContractRepository:
     @staticmethod
-    def create_contract(uploader_id: int, contract_name: str, file_name: str) -> bool:
+    def create_contract(uploader_id: int, contract_name: str, file_name: str):
         cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute(
@@ -13,11 +13,17 @@ class ContractRepository:
                 ''',
                 (contract_name, file_name, uploader_id)
             )
+            
+            # 삽입된 행의 ID 가져오기
+            contract_id = cursor.lastrowid
+            
             conn.commit()
-            return True
+            
+            # 계약서 ID 반환 (true가 아님)
+            return contract_id
         except Exception as e:
             conn.rollback()
-            return False
+            raise e
         finally:
             BaseRepository.close_db(conn=conn, cursor=cursor)
 
