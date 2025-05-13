@@ -9,8 +9,7 @@ class SpecialRepository(BaseRepository):
     def create_with_result(
         performer_id: int,
         file_name: str,
-        result: Optional[InstructionSpecialResult] = None,
-        attachments: Optional[List[Attachment]] = None
+        result: Optional[InstructionSpecialResult] = None
     ) -> int:
         """
         instruction_special +  instruction_special_result 함께 저장
@@ -34,20 +33,36 @@ class SpecialRepository(BaseRepository):
                     ) VALUES (%s, %s, %s, %s, %s)
                     """
                     cursor.execute(insert_result_sql, (instruction_special_id, result.result_content, result.all_qualities, result.average_quality, result.saved_json))
-                
-                # 3. attachment 저장 (조건부)
-                if attachments:
-                    for af in attachments:
-                        cursor.execute(
-                            "INSERT INTO attachment(instruction_special_id, file_name) VALUES(%s, %s)",
-                            (instruction_special_id, af.file_name)
-                        )
 
                 conn.commit()
                 return instruction_special_id
             except Exception as e:
                 conn.rollback()
                 raise e
+            
+    @staticmethod
+    def create_attachment(
+        instruction_special_id: int,
+        attachment: Attachment
+    ) -> int:
+        """
+        특정 instruction_special에 attachment 추가
+        """
+        with BaseRepository.DB() as (cursor, conn):
+            try:
+                insert_sql = """
+                INSERT INTO attachment (
+                    instruction_special_id, file_name
+                ) VALUES (%s, %s)
+                """
+                cursor.execute(insert_sql, (instruction_special_id, attachment.file_name))
+                attachment_id = cursor.lastrowid
+                conn.commit()
+                return attachment_id
+            except Exception as e:
+                conn.rollback()
+                raise e
+    
     @staticmethod
     def create_another_result(
         instruction_special_id: int,
@@ -146,19 +161,26 @@ class SpecialRepository(BaseRepository):
     def get_all_results_by_special_instruction_id(instruction_special_id: int) -> List[Dict[str, Any]]:
         sql = "SELECT * FROM instruction_special_result WHERE instruction_special_id = %s ORDER BY id DESC"
         with BaseRepository.DB() as (cursor, _):
-            cursor.execute(sql, (instruction_special_id,))  # 수정: 튜플로 변환
+            cursor.execute(sql, (instruction_special_id,))
             return cursor.fetchall()
     
     @staticmethod
     def get_result_by_id(result_id: int) -> Dict[str, Any]:
         sql = "SELECT * FROM instruction_special_result WHERE id = %s"
         with BaseRepository.DB() as (cursor, _):
-            cursor.execute(sql, (result_id,))  # 수정: 튜플로 변환
-            return cursor.fetchone()  # 수정: fetchall() -> fetchone()
+            cursor.execute(sql, (result_id,))
+            return cursor.fetchone()
+    
+    @staticmethod
+    def get_attachments_by_instruction_id(instruction_special_id: int) -> List[Dict[str, Any]]:
+        sql = "SELECT * FROM attachment WHERE instruction_special_id = %s"
+        with BaseRepository.DB() as (cursor, _):
+            cursor.execute(sql, (instruction_special_id,))
+            return cursor.fetchall()
         
     @staticmethod
     def delete_result_by_id(result_id: int) -> bool:
-        with BaseRepository.DB() as (cursor, conn):  # 수정: try/except 블록에서 with 블록으로 변경
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 sql = "DELETE FROM instruction_special_result WHERE id = %s"
                 cursor.execute(sql, (result_id,))
@@ -170,10 +192,22 @@ class SpecialRepository(BaseRepository):
 
     @staticmethod
     def delete_special_instruction(instruction_special_id: int) -> bool:
-        with BaseRepository.DB() as (cursor, conn):  # 수정: try/except 블록에서 with 블록으로 변경
+        with BaseRepository.DB() as (cursor, conn):
             try:
                 sql = "DELETE FROM instruction_special WHERE id = %s"
                 cursor.execute(sql, (instruction_special_id,))
+                conn.commit()
+                return cursor.rowcount > 0
+            except Exception as e:
+                conn.rollback()
+                raise e
+                
+    @staticmethod
+    def delete_attachment(attachment_id: int) -> bool:
+        with BaseRepository.DB() as (cursor, conn):
+            try:
+                sql = "DELETE FROM attachment WHERE id = %s"
+                cursor.execute(sql, (attachment_id,))
                 conn.commit()
                 return cursor.rowcount > 0
             except Exception as e:

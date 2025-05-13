@@ -17,8 +17,7 @@ class SpecialService(BaseService):
     def create_special_instruction_with_result(
         user_id: int,
         special: InstructionSpecial,
-        result: Optional[InstructionSpecialResult] = None,
-        attachments: Optional[List[Attachment]] = None
+        result: Optional[InstructionSpecialResult] = None
     ) -> int:
         # 사용자 검증
         BaseService.validate_user(user_id=user_id)
@@ -27,11 +26,27 @@ class SpecialService(BaseService):
         instruction_special_id = SpecialRepository.create_with_result(
             performer_id=user_id,
             file_name=special.file_name,
-            result=result,
-            attachments=attachments
+            result=result
         )
 
         return instruction_special_id
+    
+    @staticmethod
+    def create_attachment(
+        user_id: int,
+        instruction_special_id: int,
+        attachment: Attachment
+    ) -> int:
+        # 사용자 검증
+        BaseService.validate_user(user_id=user_id)
+        
+        # 첨부 파일 저장
+        attachment_id = SpecialRepository.create_attachment(
+            instruction_special_id=instruction_special_id,
+            attachment=attachment
+        )
+        
+        return attachment_id
     
     @staticmethod
     def create_another_result(
@@ -146,6 +161,21 @@ class SpecialService(BaseService):
         return result
     
     @staticmethod
+    def get_attachments_by_instruction_id(
+        user_id: int,
+        instruction_special_id: int
+    ) -> List[Dict[str, Any]]:
+        # 사용자 검증
+        BaseService.validate_user(user_id=user_id)
+        
+        # 특정 instruction_special_id에 대한 모든 attachments 조회
+        attachments = SpecialRepository.get_attachments_by_instruction_id(
+            instruction_special_id=instruction_special_id
+        )
+        
+        return attachments
+    
+    @staticmethod
     def delete_result_by_id(
         user_id: int,
         result_id: int
@@ -169,6 +199,21 @@ class SpecialService(BaseService):
         # 특정 instruction_special_id에 대한 special instruction 삭제
         success = SpecialRepository.delete_special_instruction(
             instruction_special_id=instruction_special_id
+        )
+        
+        return success
+        
+    @staticmethod
+    def delete_attachment(
+        user_id: int,
+        attachment_id: int
+    ) -> bool:
+        # 사용자 검증
+        BaseService.validate_user(user_id=user_id)
+        
+        # 특정 attachment_id에 대한 attachment 삭제
+        success = SpecialRepository.delete_attachment(
+            attachment_id=attachment_id
         )
         
         return success
