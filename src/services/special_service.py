@@ -1,11 +1,9 @@
 # src/services/special_service.py
 
 from repositories.special_repository import SpecialRepository
-from repositories.user_repository import UserRepository
 from typing import Optional, List, Dict, Any
 from models import InstructionSpecial, InstructionSpecialResult, Attachment
 from base_service import BaseService
-from datetime import date
 
 """
 모든 서비스에서 사용자 검증은 필수 항목이다.

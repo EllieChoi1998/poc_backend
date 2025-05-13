@@ -90,7 +90,7 @@ class InstructionSpecial(BaseModel):
     id: Optional[int] = None
     performer_id : int
     file_name: str
-    uploaded_at: Optional[datetime]
+    uploaded_at: Optional[datetime] = datetime.now()
 
 class InstructionSpecialResult(BaseModel):
     id: Optional[int] = None

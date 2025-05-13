@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result, ocr, pef
+from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result, ocr, pef, special
 from services.system_service import SystemService
 from services.ocr_service import OcrService
 import os
@@ -53,7 +53,7 @@ app.include_router(keypoint_result.router, prefix="/keypoint-results", tags=["Ke
 app.include_router(checklist_result.router, prefix="/checklist-results", tags=["Checklist Results"])
 app.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
 app.include_router(pef.router, prefix="/pefs", tags=["PEF 운용지시서"])
-
+app.include_router(special.router, prefix="/special", tags=["특별자산 운용지시서"])
 
 
 @app.get("/")

@@ -1,11 +1,10 @@
 # src/services/pef_service.py
 
 from repositories.pef_repository import PEFRepository
-from repositories.user_repository import UserRepository
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from models import TransactionHistory, InstructionPEF
 from base_service import BaseService
-from datetime import date
+
 
 
 class PEFService(BaseService):

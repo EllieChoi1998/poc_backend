@@ -32,7 +32,7 @@ async def upload_process_pef(
     # 파일 저장을 위한 고유 파일명 생성
     file_extension = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
     
     # 파일 저장
     try:
