@@ -94,17 +94,17 @@ class InstructionSpecial(BaseModel):
 
 class InstructionSpecialResult(BaseModel):
     id: Optional[int] = None
-    instruction_special_id: int
-    result_content: Optional[str]
-    created_at: Optional[datetime]
-    usability: Optional[str]
-    all_qualities: Optional[str]
-    average_quality: Optional[str]
-    saved_json: Optional[str]
+    instruction_special_id: int = None
+    result_content: Optional[str] = ""
+    created_at: Optional[datetime] = datetime.now()
+    usability: Optional[str] = "F"
+    all_qualities: Optional[str] = "Unknown dpi"
+    average_quality: Optional[str] = "Unknown dpi"
+    saved_json: Optional[str] = ""
 
 class Attachment(BaseModel):
     id: Optional[int] = None
-    instruction_special_id: int
+    instruction_special_id: Optional[int] = None
     file_name: str
 
 

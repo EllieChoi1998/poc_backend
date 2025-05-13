@@ -151,8 +151,8 @@ class OcrEngine:
     def check_server_status(self):
         """OCR 서버 연결 및 상태를 확인합니다."""
         try:
-            # 서버 상태 URL 사용
-            response = requests.get(self.worker_status_url, timeout=10)
+            # GET 대신 POST 요청 사용
+            response = requests.post(self.worker_status_url, timeout=10)
             
             if response.status_code == 200:
                 logger.info(f"OCR 서버 상태 확인 성공: {response.status_code}")
