@@ -40,12 +40,21 @@ class OcrEngine:
         engine = cls(api_key, server_addr)
         return engine
     
-    def ocr(self, image_file: str, fid: str = "", page_index: str = "0", 
-            path: str = "", restoration: str = "", rot_angle: bool = False, 
-            bbox_roi: str = "", file_type: str = "local", recog_form: bool = False) -> OcrResult:
+    # 현재 활성화된 ocr 메서드를 주석 처리된 버전으로 교체
+    def ocr(self, image_file: str, page_index: str = "0", 
+        fid: str = "", path: str = "", restoration: str = "", 
+        rot_angle: bool = False, bbox_roi: str = "", 
+        file_type: str = "local", recog_form: bool = False) -> OcrResult:
         try:
             # 파일 타입 결정
             content_type = self._determine_content_type(image_file)
+            
+            # 요청 전 로깅 강화 - 파일 확인
+            if not os.path.exists(image_file):
+                logger.error(f"파일이 존재하지 않음: {image_file}")
+                raise FileNotFoundError(f"파일이 존재하지 않음: {image_file}")
+            
+            logger.info(f"OCR 파일 크기: {os.path.getsize(image_file)} bytes, 유형: {content_type}")
             
             start_time = time.time()
             
@@ -53,35 +62,108 @@ class OcrEngine:
             with open(image_file, 'rb') as f:
                 file_data = f.read()
                 
+            # multipart/form-data 형식으로 보내기
             files = {'imagefile': (os.path.basename(image_file), file_data, content_type)}
+            
+            # 문자열로 변환된 bool 값 사용
+            rot_angle_str = "true" if rot_angle else "false"
+            recog_form_str = "true" if recog_form else "false"
+            
             data = {
-                'fid': fid or "",
-                'page_index': page_index or "0",
-                'path': path or "",
+                'fid': fid,
+                'page_index': page_index,
+                'path': path,
                 'lic': self.license_key,
-                'restoration': restoration or "",
-                'rot_angle': str(rot_angle),
-                'bbox_roi': bbox_roi or "",
+                'restoration': restoration,
+                'rot_angle': rot_angle_str,  # Java에서는 문자열로 전송했을 가능성이 높음
+                'bbox_roi': bbox_roi,
                 'type': file_type,
-                'recog_form': str(recog_form)
+                'recog_form': recog_form_str  # Java에서는 문자열로 전송했을 가능성이 높음
             }
             
-            # 요청 실행
-            response = requests.post(self.ocr_url, files=files, data=data, timeout=60)
+            # 요청 데이터 로깅 (라이센스 키 일부는 마스킹)
+            safe_data = data.copy()
+            if 'lic' in safe_data and safe_data['lic']:
+                safe_data['lic'] = safe_data['lic'][:4] + '****'
+            logger.info(f"OCR 요청 데이터: {safe_data}")
+            logger.info(f"OCR 요청 URL: {self.ocr_url}")
+            
+            # 요청 실행 - 타임아웃 증가
+            response = requests.post(self.ocr_url, files=files, data=data, timeout=180)
             duration_ms = (time.time() - start_time) * 1000
-            logger.info(f"API 요청 응답 시간: {duration_ms} ms")
+            logger.info(f"API 요청 응답 시간: {duration_ms:.2f} ms, 상태 코드: {response.status_code}")
             
             # 응답 확인
             if response.status_code != 200:
-                logger.error(f"OCR 요청 실패. 상태 코드: {response.status_code}, 응답: {response.text}")
-                raise RuntimeError(f"OCR 요청 실패. 상태 코드: {response.status_code}")
+                logger.error(f"OCR 요청 실패. 상태 코드: {response.status_code}, 응답 본문: {response.text}")
+                logger.error(f"응답 헤더: {dict(response.headers)}")
+                raise RuntimeError(f"OCR 요청 실패. 상태 코드: {response.status_code}, 응답: {response.text}")
             
+            logger.info("OCR 응답 성공적으로 수신")
             # 응답 파싱
             return self._parse_response(response.text)
             
         except Exception as e:
             logger.error(f"OCR 요청 실패: {str(e)}", exc_info=True)
             raise RuntimeError(f"OCR 실행 중 오류가 발생했습니다: {str(e)}")
+    # def ocr(self, image_file: str, fid: str = "", page_index: str = "0", 
+    #         path: str = "", restoration: str = "", rot_angle: bool = False, 
+    #         bbox_roi: str = "", file_type: str = "local", recog_form: bool = False) -> OcrResult:
+    #     try:
+    #         # 파일 타입 결정
+    #         content_type = self._determine_content_type(image_file)
+            
+    #         start_time = time.time()
+            
+    #         # HTTP 요청 준비
+    #         with open(image_file, 'rb') as f:
+    #             file_data = f.read()
+                
+    #         files = {'imagefile': (os.path.basename(image_file), file_data, content_type)}
+    #         data = {
+    #             'fid': fid or "",
+    #             'page_index': page_index or "0",
+    #             'path': path or "",
+    #             'lic': self.license_key,
+    #             'restoration': restoration or "",
+    #             'rot_angle': str(rot_angle),
+    #             'bbox_roi': bbox_roi or "",
+    #             'type': file_type,
+    #             'recog_form': str(recog_form)
+    #         }
+            
+    #         # 요청 실행
+    #         response = requests.post(self.ocr_url, files=files, data=data, timeout=60)
+    #         duration_ms = (time.time() - start_time) * 1000
+    #         logger.info(f"API 요청 응답 시간: {duration_ms} ms")
+            
+    #         # 응답 확인
+    #         if response.status_code != 200:
+    #             logger.error(f"OCR 요청 실패. 상태 코드: {response.status_code}, 응답: {response.text}")
+    #             raise RuntimeError(f"OCR 요청 실패. 상태 코드: {response.status_code}, 응답: {response.text}")
+            
+    #         # 응답 파싱
+    #         return self._parse_response(response.text)
+            
+    #     except Exception as e:
+    #         logger.error(f"OCR 요청 실패: {str(e)}", exc_info=True)
+    #         raise RuntimeError(f"OCR 실행 중 오류가 발생했습니다: {str(e)}")
+    def check_server_status(self):
+        """OCR 서버 연결 및 상태를 확인합니다."""
+        try:
+            # 서버 상태 URL 사용
+            response = requests.get(self.worker_status_url, timeout=10)
+            
+            if response.status_code == 200:
+                logger.info(f"OCR 서버 상태 확인 성공: {response.status_code}")
+                return True, response.text
+            else:
+                logger.error(f"OCR 서버 상태 확인 실패: {response.status_code}, 응답: {response.text}")
+                return False, f"상태 코드: {response.status_code}, 응답: {response.text}"
+                
+        except Exception as e:
+            logger.error(f"OCR 서버 연결 시도 중 오류: {str(e)}", exc_info=True)
+            return False, str(e)
     
     def _determine_content_type(self, file_path: str) -> str:
         file_name = file_path.lower()

@@ -70,14 +70,14 @@ class InstructionPEF(BaseModel):
     id: Optional[int] = None
     performer_id: int
     file_name: str
-    created_at: Optional[datetime]
-    is_fund_item: Optional[str]
-    company_detail: Optional[str]
-    other_specs_text: Optional[str]
+    created_at: Optional[datetime] = None
+    is_fund_item: Optional[str] = "F"
+    company_detail: Optional[str] = ""
+    other_specs_text: Optional[str] = ""
 
 class TransactionHistory(BaseModel):
     id: Optional[int] = None
-    instruction_pef_id: int
+    instruction_pef_id: Optional[int] = None
     deal_type: str
     deal_object: str
     bank_name: str

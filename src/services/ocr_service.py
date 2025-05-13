@@ -54,6 +54,14 @@ class OcrService:
         self._engine = OcrEngine.create_ocr_engine(license_key, server_addr)
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
     
+
+            
+        # OCR 서버 상태 확인
+        status, message = self._engine.check_server_status()
+        if status:
+            logger.info(f"OCR 서버 연결 성공: {message}")
+        else:
+            logger.warning(f"OCR 서버 연결 확인 필요: {message}")
     def process_file(self, file_path: str, contract_id: Optional[int] = None) -> OcrProcessResponse:
         """
         파일 OCR 처리를 시작합니다.
@@ -66,6 +74,24 @@ class OcrService:
             OcrProcessResponse: OCR 처리 요청 결과 정보
         """
         try:
+
+            # 파일 유효성 검사
+            if not os.path.exists(file_path):
+                return {
+                    "success": False,
+                    "message": f"파일이 존재하지 않습니다: {file_path}",
+                    "ocr_status": "failed"
+                }
+                
+            file_size = os.path.getsize(file_path)
+            if file_size <= 0:
+                return {
+                    "success": False,
+                    "message": f"파일이 비어있습니다: {file_path}",
+                    "ocr_status": "failed"
+                }
+                
+            logger.info(f"OCR 처리 요청: 파일={file_path}, 크기={file_size} bytes")
             # OCR 파일 정보 저장
             file_name = os.path.basename(file_path)
             created_date = datetime.now()
@@ -79,7 +105,6 @@ class OcrService:
                 contract_id=contract_id
             )
             
-            # services/ocr_service.py (계속)
             ocr_file_id = OcrRepository.save_ocr_file(ocr_file)
             
             if not ocr_file_id:
@@ -127,7 +152,7 @@ class OcrService:
             ocr_result = self._engine.ocr(
                 image_file=file_path,
                 page_index="0",
-                file_type="local"
+                file_type="local",
             )
             execution_time = time.time() - start_time
             

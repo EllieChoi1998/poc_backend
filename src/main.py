@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result, ocr
+from routers import user, checklist, termsNconditons, contract, keypoint_result, checklist_result, ocr, pef
 from services.system_service import SystemService
 from services.ocr_service import OcrService
 import os
@@ -47,12 +47,14 @@ app.add_middleware(
 # 라우터 등록
 app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(contract.router, prefix="/contracts", tags=["Contracts"])
-# app.include_router(file.router, prefix="/files", tags=["Files"])
 app.include_router(checklist.router, prefix="/checklist", tags=["Checklist"])
 app.include_router(termsNconditons.router, prefix="/terms", tags=["Terms and Conditions"])
 app.include_router(keypoint_result.router, prefix="/keypoint-results", tags=["Keypoint Results"])
 app.include_router(checklist_result.router, prefix="/checklist-results", tags=["Checklist Results"])
 app.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
+app.include_router(pef.router, prefix="/pefs", tags=["PEF 운용지시서"])
+
+
 
 @app.get("/")
 async def root():
