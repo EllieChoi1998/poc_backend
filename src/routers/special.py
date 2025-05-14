@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status, Query, Path
 from fastapi.responses import JSONResponse
 from services.special_service import SpecialService
+from services.user_service import UserService
 from auth.jwt_utils import get_current_user
 import os
 import shutil
@@ -184,7 +185,25 @@ async def get_all_special_instructions(
     
     try:
         instructions = SpecialService.get_all_special_instructions(user_id=user_id)
-        return {"instructions": instructions}
+        result = []
+        for special in instructions:
+            # Convert to dictionary
+            if hasattr(special, "dict"):
+                special_dict = special.dict()
+            elif hasattr(special, "model_dump"):
+                special_dict = special.model_dump()
+            else:
+                special_dict = special
+                    
+            special_dict["performer_name"] = UserService.get_username_by_id(special_dict.get("performer_id"))
+            special_dict.pop("performer_id", None)
+            result.append(special_dict)  # 새 리스트에 추가
+        
+        # ID 기준으로 오름차순 정렬 추가
+        result.sort(key=lambda x: x["id"])
+        
+        return result
+            
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

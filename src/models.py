@@ -39,8 +39,8 @@ class Contract(BaseModel):
     keypoint_processer_id: Optional[int] = None
     checklist_processer_id: Optional[int] = None
     uploaded_at: Optional[datetime]
-    keypoint_processed: Optional[datetime] = None
-    checklist_processed: Optional[datetime] = None
+    keypoint_processed_at: Optional[datetime] = None
+    checklist_processed_at: Optional[datetime] = None
     checklist_printable_file_path: Optional[str] = None
     current_state: int = 0
 

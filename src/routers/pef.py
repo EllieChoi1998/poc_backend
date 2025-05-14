@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from services.pef_service import PEFService
+from services.user_service import UserService
 from auth.jwt_utils import get_current_user
 import os
 import shutil
@@ -8,6 +9,7 @@ from typing import List, Dict, Any, Optional
 from models import InstructionPEF, TransactionHistory
 import uuid
 from datetime import datetime
+
 # from utils.ai_client import send_to_ai_server  # AI 서버 통신 유틸리티 가정
 
 router = APIRouter()
@@ -143,7 +145,7 @@ async def upload_process_pef(
             detail=f"AI 서버 처리 중 오류가 발생했습니다: {str(e)}"
         )
 
-@router.get("/all", response_model=List[InstructionPEF])
+@router.get("/all")
 async def get_all_pefs(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -152,7 +154,27 @@ async def get_all_pefs(
     """
     user_id = current_user["id"]
     pef_instructions = PEFService.get_all_pef_instructions(user_id)
-    return pef_instructions
+    
+    # 새 리스트를 생성하여 결과 저장
+    result = []
+    
+    for pef in pef_instructions:
+        # Convert to dictionary
+        if hasattr(pef, "dict"):
+            pef_dict = pef.dict()
+        elif hasattr(pef, "model_dump"):
+            pef_dict = pef.model_dump()
+        else:
+            pef_dict = pef
+                
+        pef_dict["performer_name"] = UserService.get_username_by_id(pef_dict.get("performer_id"))
+        pef_dict.pop("performer_id", None)
+        result.append(pef_dict)  # 새 리스트에 추가
+
+    # ID 기준으로 오름차순 정렬
+    result.sort(key=lambda x: x["id"])
+    
+    return result  # 정렬된 리스트 반환
 
 @router.get("/{pef_id}", response_model=Optional[InstructionPEF])
 async def get_pef_by_id(

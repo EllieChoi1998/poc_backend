@@ -41,8 +41,8 @@ CREATE TABLE contract(
     keypoint_processer_id INT DEFAULT NULL,
     checklist_processer_id INT DEFAULT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    keypoint_processed TIMESTAMP DEFAULT NULL,
-    checklist_processed TIMESTAMP DEFAULT NULL,
+    keypoint_processed_at TIMESTAMP DEFAULT NULL,
+    checklist_processed_at TIMESTAMP DEFAULT NULL,
     checklist_printable_file_path VARCHAR(4000) DEFAULT NULL,
     current_state INT DEFAULT 0,
 

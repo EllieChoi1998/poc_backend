@@ -70,7 +70,7 @@ class ChecklistResultRepository():
                     c.uploader_id,
                     c.checklist_processer_id,
                     c.uploaded_at,
-                    c.checklist_processed,
+                    c.checklist_processed_at,
                     c.checklist_printable_file_path,
                     c.current_state,
 
@@ -104,8 +104,8 @@ class ChecklistResultRepository():
                 "uploader_id": rows[0]["uploader_id"],
                 "checklist_processer_id": rows[0]["checklist_processer_id"],
                 "uploaded_at": str(rows[0]["uploaded_at"]),
-                "checklist_processed": (
-                    str(rows[0]["checklist_processed"]) if rows[0]["checklist_processed"] else None
+                "checklist_processed_at": (
+                    str(rows[0]["checklist_processed_at"]) if rows[0]["checklist_processed_at"] else None
                 ),
                 "checklist_printable_file_path": rows[0]["checklist_printable_file_path"],
                 "current_state": rows[0]["current_state"]

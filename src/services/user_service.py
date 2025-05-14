@@ -274,3 +274,14 @@ class UserService:
             raise ValueError(f"사용자 ID {user_id} 삭제에 실패했습니다.")
         
         return True
+    
+    @staticmethod
+    def get_username_by_id(user_id: int) -> str:
+        if user_id is None:
+            return "미분석"
+        
+        user = UserRepository.find_by_id(user_id=user_id)
+        if user is None:
+            return "Unknown User"
+        
+        return user["name"]

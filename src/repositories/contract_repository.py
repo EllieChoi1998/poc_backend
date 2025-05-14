@@ -50,7 +50,7 @@ class ContractRepository:
         cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute(
-                'UPDATE contract SET checklist_processer_id=%s, checklist_processed=NOW(), current_state=1 WHERE id=%s',
+                'UPDATE contract SET checklist_processer_id=%s, checklist_processed_at=NOW(), current_state=1 WHERE id=%s',
                 (checklist_processer_id, contract_id)
             )
             conn.commit()
@@ -100,7 +100,7 @@ class ContractRepository:
         cursor, conn = BaseRepository.open_db()
         try:
             cursor.execute(
-                'UPDATE contract SET keypoint_processer_id=%s, checklist_processed=NOW(), current_state=3 WHERE id=%s',
+                'UPDATE contract SET keypoint_processer_id=%s, keypoint_processed_at=NOW(), current_state=3 WHERE id=%s',
                 (keypoint_processer_id, contract_id)
             )
             conn.commit()

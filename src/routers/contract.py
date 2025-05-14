@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from services.contract_service import ContractService
+from services.user_service import UserService
 from auth.jwt_utils import get_current_user
 import os
 from typing import List, Dict, Any
@@ -28,7 +29,7 @@ async def upload_contract(
         logger.info(f"파일 업로드: {file.filename}, 크기: {os.path.getsize(temp_file_path)} 바이트")
         
         # 계약서 업로드 및 OCR 처리
-        result = ContractService.upload_contract(
+        returned_result = ContractService.upload_contract(
             uploader_id= current_user["id"],
             contract_name=contract_name,
             file_name=file.filename,
@@ -39,12 +40,14 @@ async def upload_contract(
         logger.info(f"업로드 결과: {result}")
         
         # 딕셔너리 반환
-        if hasattr(result, "dict"):
-            return result.dict()
+        if hasattr(returned_result, "dict"):
+            result = returned_result.dict()
         elif hasattr(result, "model_dump"):
-            return result.model_dump()
+            result = returned_result.model_dump()
         else:
-            return result
+            result = returned_result
+
+        return result
     
     except Exception as e:
         logger.error(f"계약서 업로드 중 오류 발생: {str(e)}", exc_info=True)
@@ -66,10 +69,35 @@ async def get_contract_ocr_result(contract_id: int):
     
     return result
 
-@router.get("/all", response_model=List[Contract])
+@router.get("/all")
 async def read_all_contracts(current_user: Dict[str, Any] = Depends(get_current_user)):
     try:
-        return ContractService.get_all_contracts(user_id=current_user["id"])
+        contract_objects = ContractService.get_all_contracts(user_id=current_user["id"])
+        
+        results = []
+        
+        for contract in contract_objects:
+            # Convert to dictionary
+            if hasattr(contract, "dict"):
+                contract_dict = contract.dict()
+            elif hasattr(contract, "model_dump"):
+                contract_dict = contract.model_dump()
+            else:
+                contract_dict = contract
+                
+            # Add user names with safe handling of potentially None IDs
+            contract_dict["uploader_name"] = UserService.get_username_by_id(contract_dict.get("uploader_id"))
+            contract_dict["checklist_processer_name"] = UserService.get_username_by_id(contract_dict.get("checklist_processer_id"))
+            contract_dict["keypoint_processer_name"] = UserService.get_username_by_id(contract_dict.get("keypoint_processer_id"))
+            
+            # Safely remove ID fields if they exist
+            contract_dict.pop("uploader_id", None)
+            contract_dict.pop("checklist_processer_id", None)
+            contract_dict.pop("keypoint_processer_id", None)
+            
+            results.append(contract_dict)
+            
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
     
