@@ -3,6 +3,57 @@ from datetime import datetime, date
 from enum import Enum
 from pydantic import BaseModel, Field
 
+# OCR Engine Related
+
+from typing import List, Dict, Optional, Any, Union
+from pydantic import BaseModel, Field
+
+
+class Point(BaseModel):
+    x: int
+    y: int
+
+
+class OcrBox(BaseModel):
+    label: str
+    left_top: Point
+    right_top: Point
+    right_bottom: Point
+    left_bottom: Point
+    confidence_score: float
+
+
+class OcrResult(BaseModel):
+    fid: str = ""
+    total_pages: int = 0
+    rotate: float = 0.0
+    full_text: str = ""
+    page_file_data: str = ""
+    boxes: List[OcrBox] = []
+
+
+class OcrRequestParams(BaseModel):
+    license_key: str
+    type: str  # "local", "upload", "page" 등
+    path: Optional[str] = None  # 파일 경로 (type이 local인 경우 사용)
+    fid: Optional[str] = None  # OCR 응답 fid (type이 page인 경우 사용)
+    bbox_roi: Optional[str] = None  # OCR 대상 영역 지정 (예: "x,y,width,height")
+    restoration: Optional[str] = None  # 이미지 보정 처리 옵션
+    rot_angle: bool = False  # 자동 회전 보정 여부
+    recog_form: bool = False  # 서식 인식 여부
+    page_index: Optional[str] = "0"  # 페이지 인덱스
+
+
+class WorkerDetail(BaseModel):
+    worker_id: int = Field(..., alias="id")
+    busy: bool = Field(..., alias="is_busy")
+
+
+class WorkerStatus(BaseModel):
+    total_workers: int = Field(..., alias="total_workers")
+    busy_workers: int = Field(..., alias="busy_workers")
+    worker_details: List[WorkerDetail] = Field(..., alias="worker_details")
+
 class User(BaseModel):
     login_id: str
     ibk_id: str
@@ -122,25 +173,7 @@ class OcrStatus(str, Enum):
     SUCCESS = "SUCCESS"
     FAIL = "FAIL"
 
-class Point(BaseModel):
-    x: int
-    y: int
 
-class OcrBox(BaseModel):
-    label: str
-    left_top: Point
-    right_top: Point
-    right_bottom: Point
-    left_bottom: Point
-    confidence_score: float = 0.0
-
-class OcrResult(BaseModel):
-    fid: str = ""
-    total_pages: int = 0
-    rotate: float = 0.0
-    full_text: str = ""
-    page_file_data: str = ""
-    boxes: List[OcrBox] = Field(default_factory=list)
 
 class OcrPageBase(BaseModel):
     page: int
@@ -202,14 +235,6 @@ class OcrBoxCreate(BaseModel):
     left_bottom_y: int
     confidence_score: float = 0.0
 
-class WorkerDetail(BaseModel):
-    worker_id: int
-    is_busy: bool
-
-class WorkerStatus(BaseModel):
-    total_workers: int
-    busy_workers: int
-    worker_details: List[WorkerDetail] = Field(default_factory=list)
 
 # API 응답 모델
 class OcrProcessResponse(BaseModel):

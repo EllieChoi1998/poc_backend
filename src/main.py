@@ -13,7 +13,7 @@ load_dotenv()
 
 # OCR 서비스 관련 환경 변수
 OCR_LICENSE_KEY = os.getenv("OCR_LICENSE_KEY")
-OCR_BASE_URL = os.getenv("OCR_BASE_URL")
+OCR_SERVER_URL = os.getenv("OCR_SERVER_URL")
 
 app = FastAPI(title="IBK API", description="IBK Backend API Server")
 
@@ -25,10 +25,10 @@ async def startup_event():
     print("시스템 초기화 완료")
     
     # OCR 서비스 초기화
-    if OCR_LICENSE_KEY and OCR_BASE_URL:
-        print(f"OCR 서비스 초기화 중... (서버: {OCR_BASE_URL})")
+    if OCR_LICENSE_KEY and OCR_SERVER_URL:
+        print(f"OCR 서비스 초기화 중... (서버: {OCR_SERVER_URL})")
         try:
-            OcrService.initialize(OCR_LICENSE_KEY, OCR_BASE_URL)
+            OcrService.initialize(OCR_LICENSE_KEY, OCR_SERVER_URL)
             print("OCR 서비스 초기화 완료")
         except Exception as e:
             print(f"OCR 서비스 초기화 실패: {str(e)}")

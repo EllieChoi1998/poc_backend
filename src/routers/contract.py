@@ -28,16 +28,16 @@ async def upload_contract(
         
         logger.info(f"파일 업로드: {file.filename}, 크기: {os.path.getsize(temp_file_path)} 바이트")
         
-        # 계약서 업로드 및 OCR 처리
-        returned_result = ContractService.upload_contract(
-            uploader_id= current_user["id"],
-            contract_name=contract_name,
-            file_name=file.filename,
-            file_path=temp_file_path
-        )
+        # # 계약서 업로드 및 OCR 처리
+        # returned_result = ContractService.upload_contract(
+        #     uploader_id= current_user["id"],
+        #     contract_name=contract_name,
+        #     file_name=file.filename,
+        #     file_path=temp_file_path
+        # )
         
-        logger.info(f"업로드 결과 타입: {type(result)}")
-        logger.info(f"업로드 결과: {result}")
+        # logger.info(f"업로드 결과 타입: {type(result)}")
+        # logger.info(f"업로드 결과: {result}")
         
         # 딕셔너리 반환
         if hasattr(returned_result, "dict"):
